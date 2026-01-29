@@ -54,6 +54,11 @@ namespace RPGPD_Le_Jeu
         private int _enemyHP;
         private int _enemyMaxHP;
         private int _enemyDamage;
+        
+        // Variables pour gérer la logique Mobs.cs
+        private int _leftMobId;
+        private int _rightMobId;
+        private int _selectedMobId;
 
         // État
         private GameState _currentState;
@@ -311,9 +316,18 @@ namespace RPGPD_Le_Jeu
             
             Random rnd = new Random();
 
-            // On génère les ennemis
-            _leftEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
-            _rightEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
+            // On génère les ennemis en utilisant Mobs.cs
+            // On limite la difficulté à 3 car parce que Thomas est lazy 
+            int currentDiff = _playerLevel;
+            if (currentDiff > 3) currentDiff = 3;
+
+            Mobs mobGenerator = new Mobs(currentDiff);
+
+            _leftMobId = mobGenerator.Générer_choix_Mob();
+            _rightMobId = mobGenerator.Générer_choix_Mob();
+
+            _leftEnemyType = GetMobName(currentDiff, _leftMobId);
+            _rightEnemyType = GetMobName(currentDiff, _rightMobId);
 
             // 15% de boumboclaat
             bool leftJammed = rnd.Next(0, 100) < 15;
@@ -331,12 +345,36 @@ namespace RPGPD_Le_Jeu
             if (leftJammed) 
                 btnPathLeft.ForeColor = Color.Gray;
             else 
-                btnPathLeft.ForeColor = _leftEnemyType == "Big Boss" ? Color.Red : Color.White;
+                btnPathLeft.ForeColor = Color.White;
 
             if (rightJammed) 
                 btnPathRight.ForeColor = Color.Gray;
             else 
-                btnPathRight.ForeColor = _rightEnemyType == "Big Boss" ? Color.Red : Color.White;
+                btnPathRight.ForeColor = Color.White;
+        }
+
+        // Nouvelle fonction pour récupérer le nom depuis l'ID (basé sur Mobs.cs)
+        private string GetMobName(int difficulty, int choix)
+        {
+            switch (difficulty)
+            {
+                case 1:
+                    if (choix == 1) return "Gobelin";
+                    if (choix == 2) return "Squelette";
+                    if (choix == 3) return "Gros Rat";
+                    break;
+                case 2:
+                    if (choix == 1) return "Orc";
+                    if (choix == 2) return "Slime";
+                    if (choix == 3) return "Mage Gobelin";
+                    break;
+                case 3:
+                    if (choix == 1) return "Troll";
+                    if (choix == 2) return "Champion squelette";
+                    if (choix == 3) return "Sirène";
+                    break;
+            }
+            return "Unknown Horror";
         }
 
         private void HideBattleUI()
@@ -370,12 +408,12 @@ namespace RPGPD_Le_Jeu
             switch (_currentClass)
             {
                 case PlayerClass.Fighter:
-                    _playerMaxHP = 100; _playerMaxMana = 20; break;
+                    _playerMaxHP = 25; _playerMaxMana = 20; break;
                 case PlayerClass.WhiteMage:
-                    _playerMaxHP = 70; _playerMaxMana = 80; break;
+                    _playerMaxHP = 22; _playerMaxMana = 80; break;
                 case PlayerClass.DarkMage:
-                    _playerMaxHP = 60; _playerMaxMana = 100; break;
-                default: _playerMaxHP = 80; _playerMaxMana = 50; break;
+                    _playerMaxHP = 18; _playerMaxMana = 100; break;
+                default: _playerMaxHP = 20; _playerMaxMana = 50; break;
             }
             _playerHP = _playerMaxHP;
             _playerMana = _playerMaxMana;
@@ -389,8 +427,9 @@ namespace RPGPD_Le_Jeu
         // Callback quand tu code un chemin
         private void SelectPath(bool isLeft)
         {
-            string enemy = isLeft ? _leftEnemyType : _rightEnemyType;
-            StartBattle(enemy);
+            string enemyName = isLeft ? _leftEnemyType : _rightEnemyType;
+            _selectedMobId = isLeft ? _leftMobId : _rightMobId;
+            StartBattle(enemyName);
         }
 
         private void StartBattle(string enemyType)
@@ -401,27 +440,29 @@ namespace RPGPD_Le_Jeu
             _enemyName = enemyType;
             
             // Scaling de base
-            int difficulty = _battlesWon + 1;
-            int baseHp = 30 + (difficulty * 10);
-            int baseDmg = 5 + difficulty;
+            // Utilisation de Mobs.cs pour les stats
+            int currentDiff = _playerLevel;
+            if (currentDiff > 3) currentDiff = 3;
+            
+            Mobs mobGenerator = new Mobs(currentDiff);
+            
+            // Génération des HP et Attaque via la classe Mobs
+            _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
+            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId);
+            _enemyHP = _enemyMaxHP;
 
             // Boss Scaling
-            if (_enemyName == "Big Boss")
+            // (La logique visuelle pour différencier les mobs plus forts)
+            if (currentDiff == 3) // Si on est en difficult 3, c'est du louuuurd
             {
-                _enemyMaxHP = baseHp * 2; // Double HP
-                _enemyDamage = baseDmg + 5; // Méga damage
                 lblEnemySprite.BackColor = Color.DarkRed;
                 lblEnemySprite.Size = new Size(150, 150);
             }
-            else // Goblin
+            else // Goblin et autres
             {
-                _enemyMaxHP = baseHp;
-                _enemyDamage = baseDmg;
                 lblEnemySprite.BackColor = Color.IndianRed;
                 lblEnemySprite.Size = new Size(100, 100);
             }
-            
-            _enemyHP = _enemyMaxHP;
 
             UpdateStatsUI();
             Log($"--- BATTLE {_battlesWon + 1} START ---");
@@ -453,7 +494,7 @@ namespace RPGPD_Le_Jeu
             {
                 case "Attack":
                     // Dégâts basés sur la classe
-                    int baseAtk = _currentClass == PlayerClass.Fighter ? 15 : 8;
+                    int baseAtk = _currentClass == PlayerClass.Fighter ? 3 : 5;
                     damageDealt = baseAtk + (_playerLevel * 2);
                     _enemyHP -= damageDealt;
                     Log($"You attacked for {damageDealt} damage!");
