@@ -85,10 +85,10 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Gobelin
-                            Attack = random.Next(7, 11);
+                            Attack = random.Next(2, 4);
                             break;
                         case 2: // Squelette
-                            Attack = random.Next(6, 9);
+                            Attack = random.Next(2, 6);
                             break;
                         case 3: // Gros Rat
                             Attack = random.Next(3, 7);
@@ -99,13 +99,13 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Orc
-                            Attack = random.Next(9, 15);
+                            Attack = random.Next(3, 6);
                             break;
                         case 2: // Slime
-                            Attack = random.Next(17, 21);
+                            Attack = random.Next(1, 8);
                             break;
                         case 3: // Mage Gobelin
-                            Attack = random.Next(8, 12);
+                            Attack = random.Next(6, 9);
                             break;
                     }
                     break;
@@ -113,13 +113,13 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Troll
-                            Attack = random.Next(19, 31);
+                            Attack = random.Next(5, 10);
                             break;
                         case 2: // Champion squelette
-                            Attack = random.Next(15, 21);
+                            Attack = random.Next(7, 11);
                             break;
                         case 3: // Sirène
-                            Attack = 25;
+                            Attack = 5;
                             break;
                     }
                     break;
