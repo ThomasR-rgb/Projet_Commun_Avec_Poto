@@ -127,7 +127,58 @@ namespace RPGPD_Le_Jeu
             return Attack;
         }
 
+        public int Générer_EXP(int difficulty, int choix)
+        {
+            int exp = 0;
+            Random random = new Random();
 
+            switch (difficulty)
+            {
+                case 1:
+                    switch (choix)
+                    {
+                        case 1: // Gobelin
+                            exp = random.Next(7, 11);
+                            break;
+                        case 2: // Squelette
+                            exp = random.Next(6, 9);
+                            break;
+                        case 3: // Gros Rat
+                            exp = random.Next(3, 7);
+                            break;
+                    }
+                    break;
+                case 2:
+                    switch (choix)
+                    {
+                        case 1: // Orc
+                            exp = random.Next(9, 15);
+                            break;
+                        case 2: // Slime
+                            exp = random.Next(17, 21);
+                            break;
+                        case 3: // Mage Gobelin
+                            exp = random.Next(8, 12);
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (choix)
+                    {
+                        case 1: // Troll
+                            exp = random.Next(19, 31);
+                            break;
+                        case 2: // Champion squelette
+                            exp = random.Next(15, 21);
+                            break;
+                        case 3: // Sirène
+                            exp = 25;
+                            break;
+                    }
+                    break;
+            }
+            return exp;
+        }
 
 
     }
