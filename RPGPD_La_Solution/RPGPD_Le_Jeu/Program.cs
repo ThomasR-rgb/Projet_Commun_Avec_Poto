@@ -8,13 +8,13 @@
         static void Main(string[] args)
         {
             // Variables
-
+            int choixjoueur;
 
             // Début du programme
             do
             {
                 Intro();
-
+                choixjoueur = Menu();
 
 
 
@@ -31,8 +31,14 @@
         // Fin fonction Introduction
 
         // Début fonction Menu
-        private static int Menu(int choix)
+        private static int Menu()
         {
+            int choix = 0;
+            Console.WriteLine("1 = Play");
+            Console.WriteLine("2 = Quit");
+            Console.WriteLine("3 = Do a backflip");
+
+
 
             return choix;
         }
