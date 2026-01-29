@@ -31,6 +31,7 @@ namespace RPGPD_Le_Jeu
     {
         MainMenu,
         ClassSelection,
+        EncounterSelect, // Ma nouvelle phase de sélection
         Battle,
         GameOver
     }
@@ -57,8 +58,8 @@ namespace RPGPD_Le_Jeu
         // État
         private GameState _currentState;
 
-        // UI
-        // Petite update : J'ai ajouté "= null!;" pour dire au compilateur qu'on va les initialiser plus tard
+        // TOUS LES UI
+        // On ajoute "= null!;" pour dire au compilateur qu'on va les initialiser plus tard
         private Label lblTitle = null!;
         private Button btnStart = null!;
         private Button btnQuit = null!;
@@ -68,6 +69,13 @@ namespace RPGPD_Le_Jeu
         private Button btnFighter = null!;
         private Button btnWhiteMage = null!;
         private Button btnDarkMage = null!;
+
+        // UI de Sélection de Rencontre
+        private Panel pnlEncounterSelect = null!;
+        private Button btnPathLeft = null!;
+        private Button btnPathRight = null!;
+        private string _leftEnemyType = "";
+        private string _rightEnemyType = "";
 
         // UI de Combat
         private Panel pnlBattleScene = null!;
@@ -91,13 +99,15 @@ namespace RPGPD_Le_Jeu
             this.Size = new Size(800, 600);
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
+            
+            // Le fond il est TOUT NOIR
             this.BackColor = Color.Black; 
 
             InitializeComponents();
             ShowMainMenu();
         }
 
-        // Initialisation des widgets
+        // Initialisation de tous les widgets (boutons, textes, etc.)
         private void InitializeComponents()
         {
             // 1. Titre et Menu Principal
@@ -134,16 +144,48 @@ namespace RPGPD_Le_Jeu
             grpClassSelect.Controls.Add(btnDarkMage);
             this.Controls.Add(grpClassSelect);
 
-            // 3. Scène de Combat 
+            // Split le screen
+            pnlEncounterSelect = new Panel();
+            pnlEncounterSelect.Dock = DockStyle.Fill; // Prend toute la place
+            pnlEncounterSelect.BackColor = Color.Black;
+            pnlEncounterSelect.Visible = false;
+            this.Controls.Add(pnlEncounterSelect);
+
+            // Bouton Gauche (Screen splité)
+            btnPathLeft = new Button();
+            btnPathLeft.Location = new Point(0, 0);
+            btnPathLeft.Size = new Size(400, 600); // Moitié gauche
+            btnPathLeft.FlatStyle = FlatStyle.Flat;
+            btnPathLeft.FlatAppearance.BorderColor = Color.Gray;
+            btnPathLeft.BackColor = Color.FromArgb(20, 20, 20);
+            btnPathLeft.ForeColor = Color.White;
+            btnPathLeft.Font = new Font("Courier New", 16, FontStyle.Bold);
+            btnPathLeft.Click += (s, e) => SelectPath(true);
+            pnlEncounterSelect.Controls.Add(btnPathLeft);
+
+            // Bouton Droit (Screen splité)
+            btnPathRight = new Button();
+            btnPathRight.Location = new Point(400, 0);
+            btnPathRight.Size = new Size(400, 600); // Moitié droite
+            btnPathRight.FlatStyle = FlatStyle.Flat;
+            btnPathRight.FlatAppearance.BorderColor = Color.Gray;
+            btnPathRight.BackColor = Color.FromArgb(20, 20, 20);
+            btnPathRight.ForeColor = Color.White;
+            btnPathRight.Font = new Font("Courier New", 16, FontStyle.Bold);
+            btnPathRight.Click += (s, e) => SelectPath(false);
+            pnlEncounterSelect.Controls.Add(btnPathRight);
+
+            // 3. Phase de pétage de yeules
             pnlBattleScene = new Panel();
             pnlBattleScene.Size = new Size(760, 300);
             pnlBattleScene.Location = new Point(12, 12);
+            // Le fond il est TOUT NOIR
             pnlBattleScene.BackColor = Color.Black;
             pnlBattleScene.BorderStyle = BorderStyle.Fixed3D;
             pnlBattleScene.Visible = false;
             this.Controls.Add(pnlBattleScene);
 
-            // Cubic time
+            // Les gros cubes
             lblEnemySprite = new Label { BackColor = Color.IndianRed, Size = new Size(100, 100), Location = new Point(600, 50), Text = "ENEMY", TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Arial", 10, FontStyle.Bold), ForeColor = Color.White };
             pnlBattleScene.Controls.Add(lblEnemySprite);
 
@@ -157,7 +199,7 @@ namespace RPGPD_Le_Jeu
             lblPlayerStats = new Label { Text = "Hero Lvl 1\nHP: 50/50\nMP: 10/10", AutoSize = true, Location = new Point(220, 200), Font = new Font("Consolas", 12), ForeColor = Color.White };
             pnlBattleScene.Controls.Add(lblPlayerStats);
 
-            // 4. Zone de Log (Texte en bas)
+            // 4. Zone de Log (texte en bas)
             txtGameLog = new RichTextBox();
             txtGameLog.Location = new Point(12, 320);
             txtGameLog.Size = new Size(400, 230);
@@ -168,7 +210,7 @@ namespace RPGPD_Le_Jeu
             txtGameLog.Visible = false;
             this.Controls.Add(txtGameLog);
 
-            // 5. Menu d'action (Les 4 boutons smashables)
+            // 5. Menu d'action (les 4 boutons)
             grpActions = new GroupBox();
             grpActions.Text = "Command";
             grpActions.ForeColor = Color.White;
@@ -192,6 +234,7 @@ namespace RPGPD_Le_Jeu
             grpActions.Controls.AddRange(new Control[] { btnAttack, btnBlock, btnSpell, btnItem });
         }
 
+        // Helper pour créer des boutons de menu
         private Button CreateButton(string text, int x, int y, EventHandler onClick)
         {
             Button btn = new Button();
@@ -209,7 +252,7 @@ namespace RPGPD_Le_Jeu
             return btn;
         }
 
-        // Le helper pour les boutons de classe (Oui j'ai besoin d'aide moi avec)
+        // Helper des boutons partie 2
         private Button CreateClassButton(string text, int y)
         {
             Button btn = new Button();
@@ -223,6 +266,7 @@ namespace RPGPD_Le_Jeu
             return btn;
         }
 
+        // Helper des boutons partie 3
         private Button CreateActionButton(string text, int x, int y)
         {
             Button btn = new Button();
@@ -237,8 +281,7 @@ namespace RPGPD_Le_Jeu
             return btn;
         }
 
-        // Différents écrans
-
+        // GESTION DES ÉCRANS
         private void ShowMainMenu()
         {
             _currentState = GameState.MainMenu;
@@ -246,6 +289,7 @@ namespace RPGPD_Le_Jeu
             btnStart.Visible = true;
             btnQuit.Visible = true;
             grpClassSelect.Visible = false;
+            pnlEncounterSelect.Visible = false;
             HideBattleUI();
         }
 
@@ -255,6 +299,28 @@ namespace RPGPD_Le_Jeu
             btnStart.Visible = false;
             btnQuit.Visible = false;
             grpClassSelect.Visible = true;
+        }
+        
+        // Affiche l'écran
+        private void ShowEncounterSelection()
+        {
+            _currentState = GameState.EncounterSelect;
+            grpClassSelect.Visible = false;
+            HideBattleUI();
+            pnlEncounterSelect.Visible = true;
+            
+            // J'ai changé temporairement la génération des dudes
+            Random rnd = new Random();
+            _leftEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
+            _rightEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
+            
+            // Mise à jour du texte des boutons
+            btnPathLeft.Text = $"PATH A\n\nUnknown Room...\n\nSenses detect:\n{_leftEnemyType}";
+            btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{_rightEnemyType}";
+            
+            // Danger avec le grading de couleur
+            btnPathLeft.ForeColor = _leftEnemyType == "Big Boss" ? Color.Red : Color.White;
+            btnPathRight.ForeColor = _rightEnemyType == "Big Boss" ? Color.Red : Color.White;
         }
 
         private void HideBattleUI()
@@ -268,12 +334,13 @@ namespace RPGPD_Le_Jeu
         {
             lblTitle.Visible = false;
             grpClassSelect.Visible = false;
+            pnlEncounterSelect.Visible = false; // Enlève la map
             pnlBattleScene.Visible = true;
             txtGameLog.Visible = true;
             grpActions.Visible = true;
         }
 
-        // LOGIQUE DU JEU (Part 2)
+        // LOGIQUE DU JEU (encore)
 
         private void StartGame(PlayerClass selectedClass)
         {
@@ -297,28 +364,51 @@ namespace RPGPD_Le_Jeu
             _playerMana = _playerMaxMana;
 
             Log("You chose " + _currentClass.ToString() + "!");
-            StartBattle();
+            
+            // Ma belle map 
+            ShowEncounterSelection();
         }
 
-        private void StartBattle()
+        // Callback quand tu code un chemin
+        private void SelectPath(bool isLeft)
+        {
+            string enemy = isLeft ? _leftEnemyType : _rightEnemyType;
+            StartBattle(enemy);
+        }
+
+        private void StartBattle(string enemyType)
         {
             _currentState = GameState.Battle;
             ShowBattleUI();
 
-            // Génération d'ennemi (De plus en plus fort)
+            _enemyName = enemyType;
+            
+            // Scaling de base
             int difficulty = _battlesWon + 1;
-            _enemyMaxHP = 30 + (difficulty * 10);
-            _enemyHP = _enemyMaxHP;
-            _enemyDamage = 5 + difficulty;
-            _enemyName = difficulty % 3 == 0 ? "BIG BOSS ORC" : "Goblin"; // Big Baddie tous les 3 niveaux
+            int baseHp = 30 + (difficulty * 10);
+            int baseDmg = 5 + difficulty;
 
-            // Mise à jour visuelle (changement de couleur si boss)
-            lblEnemySprite.BackColor = difficulty % 3 == 0 ? Color.DarkRed : Color.IndianRed;
-            lblEnemySprite.Size = difficulty % 3 == 0 ? new Size(150, 150) : new Size(100, 100);
+            // Boss Scaling
+            if (_enemyName == "Big Boss")
+            {
+                _enemyMaxHP = baseHp * 2; // Double HP
+                _enemyDamage = baseDmg + 5; // Méga damage
+                lblEnemySprite.BackColor = Color.DarkRed;
+                lblEnemySprite.Size = new Size(150, 150);
+            }
+            else // Goblin
+            {
+                _enemyMaxHP = baseHp;
+                _enemyDamage = baseDmg;
+                lblEnemySprite.BackColor = Color.IndianRed;
+                lblEnemySprite.Size = new Size(100, 100);
+            }
+            
+            _enemyHP = _enemyMaxHP;
 
             UpdateStatsUI();
             Log($"--- BATTLE {_battlesWon + 1} START ---");
-            Log($"A wild {_enemyName} appears!");
+            Log($"You encounter a {_enemyName}!");
         }
 
         private void Log(string message)
@@ -355,7 +445,7 @@ namespace RPGPD_Le_Jeu
                 case "Block":
                     isBlocking = true;
                     Log("You brace yourself for impact (Defense UP)!");
-                    // Récupère un ti peu de mana
+                    // Récupère un peu de mana
                     _playerMana = Math.Min(_playerMana + 5, _playerMaxMana);
                     break;
 
@@ -415,7 +505,7 @@ namespace RPGPD_Le_Jeu
         {
             if (_enemyHP <= 0)
             {
-                // Victoire HELL YEAHHH
+                // Victoire
                 _enemyHP = 0;
                 UpdateStatsUI();
                 Log($"You defeated the {_enemyName}!");
@@ -423,7 +513,7 @@ namespace RPGPD_Le_Jeu
             }
             else
             {
-                // Tour de l'ennemi (délai sinon c'est weird)
+                // Tour de l'ennemi (simple délai simulé)
                 EnemyTurn(isBlocking);
             }
         }
@@ -473,7 +563,7 @@ namespace RPGPD_Le_Jeu
             }
 
             // Prochain combat (En mode tarpa comme Slay The Spire)
-            StartBattle();
+            ShowEncounterSelection();
         }
 
         private void GameOver()
