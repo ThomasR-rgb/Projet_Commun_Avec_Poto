@@ -23,10 +23,26 @@ namespace RPGPD_Le_Jeu
         }
         public int Générer_HP(int difficulty, int choix)
         {
+            int HP = 0;
+            Random random = new Random();
             
             switch (difficulty)
             {
                 case 1:
+                    switch (choix)
+                    {
+                        case 1: // Gobelin
+                            HP = random.Next(7, 11);
+                            break;
+                        case 2: // Squelette
+                            HP = random.Next(6, 9);
+                            break;
+                        case 3: // Gros Rat
+                            HP = random.Next(3, 7);
+                            break;
+                    }
+                    break;
+                case 2:
                     switch (choix)
                     {
                         case 1:
@@ -37,12 +53,20 @@ namespace RPGPD_Le_Jeu
                             break;
                     }
                     break;
-                case 2:
-                    break;
                 case 3:
+                    switch (choix)
+                    {
+                        case 1:
+                            break;
+                        case 2:
+                            break;
+                        case 3:
+                            break;
+                    }
                     break;
 
             }
+            return HP;
         }
 
 
