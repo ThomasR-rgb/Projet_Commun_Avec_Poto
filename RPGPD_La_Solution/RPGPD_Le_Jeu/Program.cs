@@ -309,18 +309,34 @@ namespace RPGPD_Le_Jeu
             HideBattleUI();
             pnlEncounterSelect.Visible = true;
             
-            // J'ai changé temporairement la génération des dudes
             Random rnd = new Random();
+
+            // On génère les ennemis
             _leftEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
             _rightEnemyType = rnd.Next(0, 2) == 0 ? "Goblin" : "Big Boss";
+
+            // 15% de boumboclaat
+            bool leftJammed = rnd.Next(0, 100) < 15;
+            bool rightJammed = rnd.Next(0, 100) < 15;
+
+            // Checker si c'est jammed
+            string leftText = leftJammed ? "?? JAMMED ??" : _leftEnemyType;
+            string rightText = rightJammed ? "?? JAMMED ??" : _rightEnemyType;
+
+            // On update
+            btnPathLeft.Text = $"PATH A\n\nUnknown Room...\n\nSenses detect:\n{leftText}";
+            btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{rightText}";
             
-            // Mise à jour du texte des boutons
-            btnPathLeft.Text = $"PATH A\n\nUnknown Room...\n\nSenses detect:\n{_leftEnemyType}";
-            btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{_rightEnemyType}";
-            
-            // Danger avec le grading de couleur
-            btnPathLeft.ForeColor = _leftEnemyType == "Big Boss" ? Color.Red : Color.White;
-            btnPathRight.ForeColor = _rightEnemyType == "Big Boss" ? Color.Red : Color.White;
+            // Update les couleurs
+            if (leftJammed) 
+                btnPathLeft.ForeColor = Color.Gray;
+            else 
+                btnPathLeft.ForeColor = _leftEnemyType == "Big Boss" ? Color.Red : Color.White;
+
+            if (rightJammed) 
+                btnPathRight.ForeColor = Color.Gray;
+            else 
+                btnPathRight.ForeColor = _rightEnemyType == "Big Boss" ? Color.Red : Color.White;
         }
 
         private void HideBattleUI()
@@ -334,11 +350,12 @@ namespace RPGPD_Le_Jeu
         {
             lblTitle.Visible = false;
             grpClassSelect.Visible = false;
-            pnlEncounterSelect.Visible = false; // Enlève la map
+            pnlEncounterSelect.Visible = false; // Cache la sélection quand le combat commence
             pnlBattleScene.Visible = true;
             txtGameLog.Visible = true;
             grpActions.Visible = true;
         }
+
 
         // LOGIQUE DU JEU (encore)
 
@@ -445,7 +462,7 @@ namespace RPGPD_Le_Jeu
                 case "Block":
                     isBlocking = true;
                     Log("You brace yourself for impact (Defense UP)!");
-                    // Récupère un peu de mana
+                    // Récupère un ti peu de mana
                     _playerMana = Math.Min(_playerMana + 5, _playerMaxMana);
                     break;
 
@@ -505,7 +522,7 @@ namespace RPGPD_Le_Jeu
         {
             if (_enemyHP <= 0)
             {
-                // Victoire
+                // Victoire, HELL YEAAAH
                 _enemyHP = 0;
                 UpdateStatsUI();
                 Log($"You defeated the {_enemyName}!");
