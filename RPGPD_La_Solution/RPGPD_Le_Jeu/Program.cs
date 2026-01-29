@@ -2,9 +2,14 @@
 {
     internal class Program
     {
+
+        // Constantes
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            // Variables
+            
+
         }
     }
 }
