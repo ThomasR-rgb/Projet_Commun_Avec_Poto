@@ -178,7 +178,7 @@ namespace RPGPD_Le_Jeu
                     break;
             }
             return exp; 
-        } // Fin fonction Générer EXP
+        } // Fin fonction Générer XP
 
         // Fonction pour l'IA des petits ennemis
         public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass, int MobHP) 

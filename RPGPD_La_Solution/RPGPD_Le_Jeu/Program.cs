@@ -33,6 +33,7 @@ namespace RPGPD_Le_Jeu
         ClassSelection,
         EncounterSelect, // Ma nouvelle phase de sélection
         Battle,
+        Victory, // État de victoire
         GameOver
     }
 
@@ -49,7 +50,7 @@ namespace RPGPD_Le_Jeu
         private int _battlesWon;
         private int _potions;
 
-        // Ennemi actuel (yen a juste un faque ouais)
+        // Ennemi actuel (rémanants de l'ancien code, maintenant tout est géré par Mobs.cs)
         private string _enemyName = "Goblin";
         private int _enemyHP;
         private int _enemyMaxHP;
@@ -71,6 +72,7 @@ namespace RPGPD_Le_Jeu
         private Label lblTitle = null!;
         private Button btnStart = null!;
         private Button btnQuit = null!;
+        private Button btnCredits = null!; // NEW: Bouton Crédits
         
         // UI de Sélection de classe
         private GroupBox grpClassSelect = null!;
@@ -98,6 +100,11 @@ namespace RPGPD_Le_Jeu
         private Button btnSpell = null!;
         private Button btnItem = null!;
         
+        // UI de Victoire
+        private Panel pnlWinScreen = null!;
+        private Label lblWinMessage = null!;
+        private Button btnWinReturn = null!;
+
         private RichTextBox txtGameLog = null!;
 
         public GameForm()
@@ -129,6 +136,9 @@ namespace RPGPD_Le_Jeu
 
             btnStart = CreateButton("Play", 300, 200, (s, e) => ShowClassSelection());
             btnQuit = CreateButton("Quit", 300, 270, (s, e) => Application.Exit());
+            
+            // Bouton Crédits
+            btnCredits = CreateButton("Credits", 300, 340, (s, e) => MessageBox.Show("Made with love by Félix Lehoux & Thomas Rudacovitch", "Credits"));
 
             // 2. Sélection de Classe
             grpClassSelect = new GroupBox();
@@ -240,6 +250,34 @@ namespace RPGPD_Le_Jeu
             btnItem.Click += (s, e) => PlayerTurn("Item");
 
             grpActions.Controls.AddRange(new Control[] { btnAttack, btnBlock, btnSpell, btnItem });
+
+            // Écran de victoire
+            pnlWinScreen = new Panel();
+            pnlWinScreen.Dock = DockStyle.Fill;
+            pnlWinScreen.BackColor = Color.Black;
+            pnlWinScreen.Visible = false;
+            this.Controls.Add(pnlWinScreen);
+
+            lblWinMessage = new Label();
+            lblWinMessage.Text = "VICTORY!\n\nYou have conquered the dungeon\nand defeated 10 monsters!";
+            lblWinMessage.Font = new Font("Courier New", 24, FontStyle.Bold);
+            lblWinMessage.ForeColor = Color.Gold;
+            lblWinMessage.AutoSize = true;
+            lblWinMessage.TextAlign = ContentAlignment.MiddleCenter;
+            lblWinMessage.Location = new Point(150, 150);
+            pnlWinScreen.Controls.Add(lblWinMessage);
+
+            btnWinReturn = new Button();
+            btnWinReturn.Text = "Return to Main Menu";
+            btnWinReturn.Location = new Point(250, 400);
+            btnWinReturn.Size = new Size(300, 60);
+            btnWinReturn.Font = new Font("Arial", 16);
+            btnWinReturn.BackColor = Color.Black;
+            btnWinReturn.ForeColor = Color.White;
+            btnWinReturn.FlatStyle = FlatStyle.Flat;
+            btnWinReturn.FlatAppearance.BorderColor = Color.White;
+            btnWinReturn.Click += (s, e) => ShowMainMenu();
+            pnlWinScreen.Controls.Add(btnWinReturn);
         }
 
         // Helper pour créer des boutons de menu
@@ -296,8 +334,10 @@ namespace RPGPD_Le_Jeu
             lblTitle.Visible = true;
             btnStart.Visible = true;
             btnQuit.Visible = true;
+            btnCredits.Visible = true; // Afficher les crédits
             grpClassSelect.Visible = false;
             pnlEncounterSelect.Visible = false;
+            pnlWinScreen.Visible = false; // Cacher l'écran de victoire
             HideBattleUI();
         }
 
@@ -306,7 +346,17 @@ namespace RPGPD_Le_Jeu
             _currentState = GameState.ClassSelection;
             btnStart.Visible = false;
             btnQuit.Visible = false;
+            btnCredits.Visible = false; // Cacher les crédits
             grpClassSelect.Visible = true;
+        }
+
+        // Afficher l'écran de victoire
+        private void ShowWinScreen()
+        {
+            _currentState = GameState.Victory;
+            HideBattleUI();
+            pnlEncounterSelect.Visible = false;
+            pnlWinScreen.Visible = true;
         }
         
         // Affiche l'écran
@@ -316,6 +366,7 @@ namespace RPGPD_Le_Jeu
             grpClassSelect.Visible = false;
             HideBattleUI();
             pnlEncounterSelect.Visible = true;
+            pnlWinScreen.Visible = false;
             
             Random rnd = new Random();
 
@@ -392,6 +443,7 @@ namespace RPGPD_Le_Jeu
             lblTitle.Visible = false;
             grpClassSelect.Visible = false;
             pnlEncounterSelect.Visible = false; // Cache la sélection quand le combat commence
+            pnlWinScreen.Visible = false;
             pnlBattleScene.Visible = true;
             txtGameLog.Visible = true;
             grpActions.Visible = true;
@@ -517,11 +569,23 @@ namespace RPGPD_Le_Jeu
                         Log("CRITICAL HIT! You hit a weak spot!");
                     }
                     
-                    // Checker si l'ennemi bloque (venant de Mobs.cs encore une fois)
-                    if (_enemyIsBlocking)
+                    // Checker si l'ennemi bloque (venant de Mobs.cs EN DIRECT MAINTENANT)
+                    int currentDiff = _playerLevel;
+                    if (currentDiff > 3) currentDiff = 3;
+                    
+                    Mobs mobCheck = new Mobs(currentDiff);
+                    // On check le RNG de block maintenant
+                    int mobAction = mobCheck.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+                    
+                    if (mobAction == 2) // Si 2, ça veut dire Block + Heal
                     {
                         damageDealt /= 2;
-                        Log("Enemy is guarding! Damage halved.");
+                        
+                        // Heal 20%
+                        int healAmount = (int)(_enemyMaxHP * 0.20);
+                        _enemyHP = Math.Min(_enemyHP + healAmount, _enemyMaxHP);
+                        
+                        Log($"The {_enemyName} BLOCKS! Damage halved & Healed {healAmount} HP.");
                     }
 
                     _enemyHP -= damageDealt;
@@ -682,6 +746,13 @@ namespace RPGPD_Le_Jeu
         private void WinBattle()
         {
             _battlesWon++;
+
+            // Écran de victoire après 10 combats
+            if (_battlesWon >= 10)
+            {
+                ShowWinScreen();
+                return;
+            }
             
             // Level Up Check (Tous les 3 combats)
             int levelUpThreshold = 3; 
