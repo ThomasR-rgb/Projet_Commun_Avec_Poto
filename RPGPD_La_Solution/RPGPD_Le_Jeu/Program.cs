@@ -60,7 +60,10 @@ namespace RPGPD_Le_Jeu
         private int _rightMobId;
         private int _selectedMobId;
 
-        // État
+        // Variable pour savoir si l'ennemi bloque venant de Mobs.cs
+        private bool _enemyIsBlocking;
+
+        // État actuel
         private GameState _currentState;
 
         // TOUS LES UI
@@ -317,7 +320,7 @@ namespace RPGPD_Le_Jeu
             Random rnd = new Random();
 
             // On génère les ennemis en utilisant Mobs.cs
-            // On limite la difficulté à 3 car parce que Thomas est lazy 
+            // On limite la difficulté à 3 car Mobs.cs en a juste 3 et que Thomas est paresseux
             int currentDiff = _playerLevel;
             if (currentDiff > 3) currentDiff = 3;
 
@@ -338,7 +341,7 @@ namespace RPGPD_Le_Jeu
             string rightText = rightJammed ? "?? JAMMED ??" : _rightEnemyType;
 
             // On update
-            btnPathLeft.Text = $"PATH A\n\nUnknown Room...\n\nSenses detect:\n{leftText}";
+            btnPathLeft.Text = $"PATH A\n\nStrange Corridor.\n\nSenses detect:\n{leftText}";
             btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{rightText}";
             
             // Update les couleurs
@@ -353,7 +356,7 @@ namespace RPGPD_Le_Jeu
                 btnPathRight.ForeColor = Color.White;
         }
 
-        // Nouvelle fonction pour récupérer le nom depuis l'ID (basé sur Mobs.cs)
+        // Fonction pour récupérer le nom depuis l'ID d'après Mobs.cs
         private string GetMobName(int difficulty, int choix)
         {
             switch (difficulty)
@@ -424,7 +427,7 @@ namespace RPGPD_Le_Jeu
             ShowEncounterSelection();
         }
 
-        // Callback quand tu code un chemin
+        // Callback quand tu choisis un chemin
         private void SelectPath(bool isLeft)
         {
             string enemyName = isLeft ? _leftEnemyType : _rightEnemyType;
@@ -438,6 +441,7 @@ namespace RPGPD_Le_Jeu
             ShowBattleUI();
 
             _enemyName = enemyType;
+            _enemyIsBlocking = false; // Reset de l'état de block
             
             // Scaling de base
             // Utilisation de Mobs.cs pour les stats
@@ -453,7 +457,7 @@ namespace RPGPD_Le_Jeu
 
             // Boss Scaling
             // (La logique visuelle pour différencier les mobs plus forts)
-            if (currentDiff == 3) // Si on est en difficult 3, c'est du louuuurd
+            if (currentDiff == 3) // Si on est en difficulty 3, c'est du louuurd
             {
                 lblEnemySprite.BackColor = Color.DarkRed;
                 lblEnemySprite.Size = new Size(150, 150);
@@ -494,8 +498,32 @@ namespace RPGPD_Le_Jeu
             {
                 case "Attack":
                     // Dégâts basés sur la classe
-                    int baseAtk = _currentClass == PlayerClass.Fighter ? 3 : 5;
-                    damageDealt = baseAtk + (_playerLevel * 2);
+                    // On met les dégâts aléatoires
+                    Random rnd = new Random();
+                    if (_currentClass == PlayerClass.Fighter)
+                    {
+                        damageDealt = rnd.Next(3, 7); // Entre 3 et 6 inclus
+                    }
+                    else
+                    {
+                        damageDealt = rnd.Next(2, 5); // Entre 2 et 4 inclus
+                    }
+
+                    // Coups Critiques 4% de chance
+                    bool isCrit = rnd.Next(0, 100) < 4;
+                    if (isCrit)
+                    {
+                        damageDealt *= 2;
+                        Log("CRITICAL HIT! You hit a weak spot!");
+                    }
+                    
+                    // Checker si l'ennemi bloque (venant de Mobs.cs encore une fois)
+                    if (_enemyIsBlocking)
+                    {
+                        damageDealt /= 2;
+                        Log("Enemy is guarding! Damage halved.");
+                    }
+
                     _enemyHP -= damageDealt;
                     Log($"You attacked for {damageDealt} damage!");
                     break;
@@ -520,12 +548,20 @@ namespace RPGPD_Le_Jeu
                         else if (_currentClass == PlayerClass.DarkMage)
                         {
                             int spellDmg = 25 + (_playerLevel * 5);
+                            
+                            // Les spells peuvent pas être bloqués ? Ok Thomas
+                            if (_enemyIsBlocking) {
+                                spellDmg /= 2;
+                                Log("Enemy magic resistance UP! Damage halved.");
+                            }
+
                             _enemyHP -= spellDmg;
                             Log($"You cast FIREBALL! Dealt {spellDmg} damage.");
                         }
                         else // Fighter spell (faible)
                         {
                             int spellDmg = 15;
+                            if (_enemyIsBlocking) spellDmg /= 2;
                             _enemyHP -= spellDmg;
                             Log($"You cast PUNCH SPELL! Dealt {spellDmg} damage.");
                         }
@@ -582,11 +618,54 @@ namespace RPGPD_Le_Jeu
             grpActions.Enabled = false; // Empêche de cliquer
             await Task.Delay(1000);
 
-            int dmg = _enemyDamage;
-            if (playerBlocking) dmg /= 2; // Dégâts réduits de moitié si Bloque
+            // Utilisation de Mobs.cs pour l'IA
+            int currentDiff = _playerLevel;
+            if (currentDiff > 3) currentDiff = 3;
 
-            _playerHP -= dmg;
-            Log($"The {_enemyName} attacks! You take {dmg} damage.");
+            Mobs mobAI = new Mobs(currentDiff);
+            
+            // On demande à Mobs.cs quoi faire (1=Atk, 2=Block, 3=Special)
+            int actionCode = mobAI.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+
+            // On reset le block précédent car l'ennemi choisit une nouvelle action
+            _enemyIsBlocking = false;
+
+            if (actionCode == 1) // Attaque
+            {
+                int dmg = _enemyDamage;
+
+                // Chance de critique ennemie 4%
+                Random rnd = new Random();
+                bool isCrit = rnd.Next(0, 100) < 4;
+
+                if (isCrit)
+                {
+                    dmg *= 2;
+                    Log("CRITICAL HIT! Enemy smashed you!");
+                }
+
+                if (playerBlocking) dmg /= 2; // Dégâts réduits de moitié si Bloque
+
+                _playerHP -= dmg;
+                Log($"The {_enemyName} attacks! You take {dmg} damage.");
+            }
+            else if (actionCode == 2) // Block et Regen
+            {
+                _enemyIsBlocking = true; // Sera utilisé au prochain tour du joueur
+                
+                int regen = 5 + (currentDiff * 2);
+                _enemyHP = Math.Min(_enemyHP + regen, _enemyMaxHP);
+                
+                Log($"The {_enemyName} takes a defensive stance and regenerates {regen} HP!");
+            }
+            else if (actionCode == 3) // Abilité spéciale
+            {
+                int dmg = (int)(_enemyDamage * 1.5); // 50% plus mal
+                if (playerBlocking) dmg /= 2;
+
+                _playerHP -= dmg;
+                Log($"!!! The {_enemyName} uses a SPECIAL ABILITY! You take CRITICAL {dmg} damage!");
+            }
             
             UpdateStatsUI();
 
@@ -604,15 +683,14 @@ namespace RPGPD_Le_Jeu
         {
             _battlesWon++;
             
-            // Level Up Check (Tous les 2 combats pour tester vite)
-            int levelUpThreshold = 2; 
+            // Level Up Check (Tous les 3 combats)
+            int levelUpThreshold = 3; 
             
             MessageBox.Show($"Victory! You won battle #{_battlesWon}.", "Victory", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             if (_battlesWon % levelUpThreshold == 0)
             {
                 _playerLevel++;
-                _playerMaxHP += 10;
                 _playerMaxMana += 5;
                 _playerHP = _playerMaxHP; // Soin complet au level up
                 _playerMana = _playerMaxMana;
