@@ -72,7 +72,7 @@ namespace RPGPD_Le_Jeu
                     break;
             }
             return HP;
-        }
+        } // Fin fonction GénérerHP
 
         public int Générer_Attaque(int difficulty, int choix)
         {
@@ -125,7 +125,7 @@ namespace RPGPD_Le_Jeu
                     break;
             }
             return Attack;
-        }
+        } // Fin fonction GénérerAttaque
 
         public int Générer_EXP(int difficulty, int choix)
         {
@@ -138,13 +138,13 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Gobelin
-                            exp = random.Next(7, 11);
+                            exp = random.Next(1, 2);
                             break;
                         case 2: // Squelette
-                            exp = random.Next(6, 9);
+                            exp = random.Next(1, 2);
                             break;
                         case 3: // Gros Rat
-                            exp = random.Next(3, 7);
+                            exp = random.Next(1, 2);
                             break;
                     }
                     break;
@@ -152,13 +152,13 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Orc
-                            exp = random.Next(9, 15);
+                            exp = random.Next(1, 2);
                             break;
                         case 2: // Slime
-                            exp = random.Next(17, 21);
+                            exp = random.Next(1, 2);
                             break;
                         case 3: // Mage Gobelin
-                            exp = random.Next(8, 12);
+                            exp = random.Next(1, 2);
                             break;
                     }
                     break;
@@ -166,20 +166,27 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Troll
-                            exp = random.Next(19, 31);
+                            exp = random.Next(1, 2);
                             break;
                         case 2: // Champion squelette
-                            exp = random.Next(15, 21);
+                            exp = random.Next(1, 2);
                             break;
                         case 3: // Sirène
-                            exp = 25;
+                            exp = 1;
                             break;
                     }
                     break;
             }
-            return exp;
-        }
+            return exp; 
+        } // Fin fonction Générer EXP
 
+        public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass)
+        {
+
+
+
+            return difficulty;
+        } // Fin fonction ChoixActionEnnemi
 
     }
 }
