@@ -180,12 +180,115 @@ namespace RPGPD_Le_Jeu
             return exp; 
         } // Fin fonction Générer EXP
 
-        public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass)
+        // Fonction pour l'IA des petits ennemis
+        public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass, int MobHP) 
         {
+            int ChoixEnnemi = 0;
+            Random random = new Random();
+            int aleatoire = 0;
+            // Code d'action des ennemis: 1 = attaque,  2 = Bloque et régène, 3 = Abilité particulière au mob
 
-
-
-            return difficulty;
+            switch (difficulty)
+            {
+                case 1:
+                    switch (choix)
+                    {
+                        case 1: // Gobelin
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 8 || PlayerHP > 4)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 7)
+                                { ChoixEnnemi = 1; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                                return ChoixEnnemi;
+                        case 2: // Squelette
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 7 || PlayerHP > 5)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 8)
+                                { ChoixEnnemi = 1; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                        case 3: // Gros Rat
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 5 || PlayerHP > 6)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 9)
+                                { ChoixEnnemi = 1; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                    }
+                    break;
+                case 2:
+                    switch (choix)
+                    {
+                        case 1: // Orc
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 11 || PlayerHP > 4)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 7)
+                                { ChoixEnnemi = 1; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                        case 2: // Slime
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 15 || PlayerHP > 4)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 5)
+                                { ChoixEnnemi = 1; }
+                                else if (aleatoire == 10)
+                                { ChoixEnnemi = 3; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                        case 3: // Mage Gobelin
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP <= 8 || PlayerHP > 4)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 3)
+                                { ChoixEnnemi = 1; }
+                                else if (aleatoire == 5 || aleatoire == 6 || aleatoire == 4)
+                                { ChoixEnnemi = 3; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                    }
+                    break;
+                case 3:
+                    switch (choix)
+                    {
+                        case 1: // Troll
+                            return ChoixEnnemi;
+                        case 2: // Champion squelette
+                            return ChoixEnnemi;
+                        case 3: // Sirène
+                            return ChoixEnnemi;
+                    }
+                    break;
+            }
+            return ChoixEnnemi;
         } // Fin fonction ChoixActionEnnemi
 
     }
