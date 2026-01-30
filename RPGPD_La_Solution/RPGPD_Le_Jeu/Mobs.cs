@@ -180,6 +180,49 @@ namespace RPGPD_Le_Jeu
             return exp; 
         } // Fin fonction Générer XP
 
+        // Fonction Bloque des ennemis de base
+        public int GénérerBloque(int difficulty, int choix)
+        {
+            int BloqueHeal = 0;
+            Random random = new Random();
+
+            switch(difficulty)
+            {
+                case 1:
+                    BloqueHeal = random.Next(-3, -5);
+                    break;
+                case 2:
+                    switch (choix)
+                    {
+                        case 1: // Orc
+                            BloqueHeal = random.Next(-4, -7);
+                            break;
+                        case 2: // Slime
+                            BloqueHeal = -6;
+                            break;
+                        case 3: // Mage Gobelin
+                            BloqueHeal = random.Next(-6, -9);
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (choix)
+                    {
+                        case 1: // Troll
+                            BloqueHeal = random.Next(-7, -9);
+                            break;
+                        case 2: // Champion squelette
+                            BloqueHeal = random.Next(-7, -9);
+                            break;
+                        case 3: // Sirène
+                            BloqueHeal = -10;
+                            break;
+                    }
+                    break;
+            }
+            return BloqueHeal;
+        }
+
         // Fonction pour l'IA des petits ennemis
         public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass, int MobHP) 
         {
@@ -377,10 +420,33 @@ namespace RPGPD_Le_Jeu
                             return HP;
                     }
                     break;
-                    
             }
             return HP;
-
         }
+        // Fin fonction Générer HP Boss
+
+        // Début fonction RésultatTourMobs
+        public int ResultatTourMobsDeBase(int difficulty, int choix , int ChoixActionMobs)
+        {
+            int resultat = 0;
+            switch (ChoixActionMobs)
+            {
+                case 1:
+                    resultat = Générer_Attaque(difficulty, choix);
+                    return resultat;
+                case 2:
+                    resultat = GénérerBloque(difficulty, choix);
+                    return resultat;
+                case 3:
+                    resultat = 0;
+                    return resultat;
+            }
+            return resultat;
+        }
+        // Fin fonction ResultatTourMobsDeBase
+
+
+
+
     }
 }
