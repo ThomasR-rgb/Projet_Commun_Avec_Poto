@@ -195,7 +195,7 @@ namespace RPGPD_Le_Jeu
                     {
                         case 1: // Gobelin
                             aleatoire = random.Next(0, 11);
-                            if (MobHP >= 8 || PlayerHP > 4)
+                            if (MobHP >= 8 || PlayerHP < 4)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -207,7 +207,7 @@ namespace RPGPD_Le_Jeu
                                 return ChoixEnnemi;
                         case 2: // Squelette
                             aleatoire = random.Next(0, 11);
-                            if (MobHP >= 7 || PlayerHP > 5)
+                            if (MobHP >= 7 || PlayerHP < 5)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -219,7 +219,7 @@ namespace RPGPD_Le_Jeu
                             return ChoixEnnemi;
                         case 3: // Gros Rat
                             aleatoire = random.Next(0, 11);
-                            if (MobHP >= 5 || PlayerHP > 6)
+                            if (MobHP >= 5 || PlayerHP < 6)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -236,7 +236,7 @@ namespace RPGPD_Le_Jeu
                     {
                         case 1: // Orc
                             aleatoire = random.Next(0, 11);
-                            if (MobHP >= 11 || PlayerHP > 4)
+                            if (MobHP >= 11 || PlayerHP < 4)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -248,7 +248,7 @@ namespace RPGPD_Le_Jeu
                             return ChoixEnnemi;
                         case 2: // Slime
                             aleatoire = random.Next(0, 11);
-                            if (MobHP >= 15 || PlayerHP > 4)
+                            if (MobHP >= 15 || PlayerHP < 4)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -262,7 +262,7 @@ namespace RPGPD_Le_Jeu
                             return ChoixEnnemi;
                         case 3: // Mage Gobelin
                             aleatoire = random.Next(0, 11);
-                            if (MobHP <= 8 || PlayerHP > 4)
+                            if (MobHP >= 8 || PlayerHP < 4)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -281,7 +281,35 @@ namespace RPGPD_Le_Jeu
                     {
                         case 1: // Troll
                             aleatoire = random.Next(0, 11);
-                            if (MobHP <= 15 || PlayerHP > 6)
+                            if (MobHP >= 15 || PlayerHP < 6)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 3)
+                                { ChoixEnnemi = 1; }
+                                else if (aleatoire >= 6)
+                                { ChoixEnnemi = 2; }
+                                else
+                                { ChoixEnnemi = 3; }
+                            }
+                            return ChoixEnnemi;
+                        case 2: // Champion squelette
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 11 || PlayerHP < 10)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 6)
+                                { ChoixEnnemi = 1; }
+                                else if (aleatoire == 7)
+                                { ChoixEnnemi = 3; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                        case 3: // Sirène
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 20 || PlayerHP < 6)
                             { ChoixEnnemi = 1; }
                             else
                             {
@@ -293,15 +321,66 @@ namespace RPGPD_Le_Jeu
                                 { ChoixEnnemi = 2; }
                             }
                             return ChoixEnnemi;
-                        case 2: // Champion squelette
-                            return ChoixEnnemi;
-                        case 3: // Sirène
-                            return ChoixEnnemi;
                     }
                     break;
             }
             return ChoixEnnemi;
         } // Fin fonction ChoixActionEnnemi
 
+        // Choisi le boss
+        public int Generer_Choix_Boss()
+        {
+            Random random = new Random();
+            int choix = random.Next(1, 3);
+            return choix;
+        }
+        // Fin fonction choisi boss
+
+        // Fonction BossHP
+
+        public int BossHP(int choixBoss, int difficulty)
+        {
+            int HP = 0;
+            Random random = new Random();
+            switch(difficulty)
+            {
+                case 1:
+                    switch(choixBoss)
+                    {
+                        case 1: // Swarm gobelin (l'équivalent de 3 gobelins en même temps)
+                            HP = random.Next(21, 31);
+                            return HP;
+                        case 2: // Porte Méchante (Angry Door)
+                            HP = 20;
+                            return HP;
+                    }
+                    break;
+                case 2:
+                    switch (choixBoss)
+                    {
+                        case 1: // Géant (peut stun le joueur donc lui faire skipper son tour, si joueur a utilisé spell ou consommable, le joueur perd quand même les MP ou consommable)
+                            HP = random.Next(30, 41);
+                            return HP;
+                        case 2: // Garguouille (peut réduire attaque physique reçue de 50%)
+                            HP = random.Next(25, 31);
+                            return HP;
+                    }
+                    break;
+                case 3:
+                    switch (choixBoss)
+                    {
+                        case 1: // Démon Démoniaque (fait extrêmement mal, mais subit des dégats à chaque attaque, bloque très probable sur la verge de la mort)
+                            HP = random.Next(35, 46);
+                            return HP;
+                        case 2: // Dark sorcerer (un sorcier qui a mal tourné (magic barrier?))
+                            HP = random.Next(30, 36);
+                            return HP;
+                    }
+                    break;
+                    
+            }
+            return HP;
+
+        }
     }
 }
