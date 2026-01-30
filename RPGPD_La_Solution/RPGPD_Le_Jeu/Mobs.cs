@@ -280,6 +280,18 @@ namespace RPGPD_Le_Jeu
                     switch (choix)
                     {
                         case 1: // Troll
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP <= 15 || PlayerHP > 6)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 3)
+                                { ChoixEnnemi = 1; }
+                                else if (aleatoire == 5 || aleatoire == 6 || aleatoire == 4)
+                                { ChoixEnnemi = 3; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
                             return ChoixEnnemi;
                         case 2: // Champion squelette
                             return ChoixEnnemi;

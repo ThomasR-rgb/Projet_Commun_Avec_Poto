@@ -371,7 +371,7 @@ namespace RPGPD_Le_Jeu
             Random rnd = new Random();
 
             // On génère les ennemis en utilisant Mobs.cs
-            // On limite la difficulté à 3 car Mobs.cs en a juste 3 et que Thomas est paresseux
+            // On limite la difficulté à 3 car Mobs.cs en a juste 3 et que Thomas n'a pas eu le temps de mettre beaucoup de temps dna sle projet félix a écrit ca
             int currentDiff = _playerLevel;
             if (currentDiff > 3) currentDiff = 3;
 
@@ -463,12 +463,12 @@ namespace RPGPD_Le_Jeu
             switch (_currentClass)
             {
                 case PlayerClass.Fighter:
-                    _playerMaxHP = 25; _playerMaxMana = 20; break;
+                    _playerMaxHP = 25; _playerMaxMana = 2; break;
                 case PlayerClass.WhiteMage:
-                    _playerMaxHP = 22; _playerMaxMana = 80; break;
+                    _playerMaxHP = 22; _playerMaxMana = 3; break;
                 case PlayerClass.DarkMage:
-                    _playerMaxHP = 18; _playerMaxMana = 100; break;
-                default: _playerMaxHP = 20; _playerMaxMana = 50; break;
+                    _playerMaxHP = 20; _playerMaxMana = 4; break;
+                default: _playerMaxHP = 20; _playerMaxMana = 3; break;
             }
             _playerHP = _playerMaxHP;
             _playerMana = _playerMaxMana;
