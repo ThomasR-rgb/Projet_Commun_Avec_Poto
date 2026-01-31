@@ -8,7 +8,9 @@ using System.Linq;
 
 namespace RPGPD_Le_Jeu
 {
-    // Classe principale qui lance l'application
+    // ==========================================
+    // CRÉATION DE LA FENÊTRE DU JEU
+    // ==========================================
     internal static class Program
     {
         [STAThread]
@@ -19,9 +21,9 @@ namespace RPGPD_Le_Jeu
         }
     }
 
-    // LOGIQUE ULTIME DU JEU ¯\_(ツ)_/¯
-
-    // Les classes différentes
+    // ==========================================
+    // DÉFINITIONS & ÉNUMÉRATIONS
+    // ==========================================
     public enum PlayerClass
     {
         Fighter,
@@ -29,19 +31,20 @@ namespace RPGPD_Le_Jeu
         DarkMage
     }
 
-    // L'état du jeu
     public enum GameState
     {
         MainMenu,
         ClassSelection,
-        EncounterSelect, // Ma nouvelle phase de sélection
+        EncounterSelect,
         Battle,
-        Victory, // État de victoire
+        Victory,
         GameOver,
-        Credits // Crédit pour l'overlay
+        Credits
     }
 
-    // Classes pour les juicy animations
+    // ==========================================
+    // TOUTES LES CLASSES VISUELLES
+    // ==========================================
     public class Particle
     {
         public PointF Position;
@@ -61,7 +64,6 @@ namespace RPGPD_Le_Jeu
         public float Alpha;
     }
 
-    // Je fais ici des panels spéciaux pour éviter le crash total de l'armageddon
     public class BufferedPanel : Panel
     {
         public BufferedPanel()
@@ -72,10 +74,13 @@ namespace RPGPD_Le_Jeu
         }
     }
 
-    // INTERFACE GRAPHIQUE !
+    // ==========================================
+    // LA CLASSE PRINCIPALE
+    // ==========================================
     public class GameForm : Form
     {
-        // VARIABLES DU JEU (Ce que Tom a demandé)
+
+        // Données du Joueur (Ce que Tom a demandé)
         private PlayerClass _currentClass;
         private int _playerHP;
         private int _playerMaxHP;
@@ -85,139 +90,149 @@ namespace RPGPD_Le_Jeu
         private int _battlesWon;
         private int _potions;
 
-        // Ennemi actuel (vieille version)
+        // Données de l'Ennemi
         private string _enemyName = "Goblin";
         private int _enemyHP;
         private int _enemyMaxHP;
         private int _enemyDamage;
         
-        // Variables pour gérer la logique Mobs.cs
+        // Logique Mobs.cs (Tous les IDs)
         private int _leftMobId;
         private int _rightMobId;
         private int _selectedMobId;
+        private string _leftEnemyType = "";
+        private string _rightEnemyType = "";
 
         // Variable pour savoir si l'ennemi bloque venant de Mobs.cs
         private bool _enemyIsBlocking;
 
-        // État actuel
+        // État Global
         private GameState _currentState;
 
-        // Variables d'animations
         private System.Windows.Forms.Timer _gameTimer = null!;
         private float _globalTime = 0;
+        private Random _rng = new Random();
+
+        // Particules & Popups
         private List<Particle> _particles = new List<Particle>();
         private List<PopupText> _popups = new List<PopupText>(); 
-        private Queue<PopupText> _popupQueue = new Queue<PopupText>(); // La queue des popups
-        private Random _rng = new Random();
-        
-        // Shaky Shakouille
+        private Queue<PopupText> _popupQueue = new Queue<PopupText>();
+
+        // Effets d'écran
         private int _shakeDuration = 0;
         private int _shakeMagnitude = 0;
-
-        // État des sprites
-        private float _playerAnimOffset = 0;
-        private float _enemyAnimOffset = 0;
-        private Color _flashColor = Color.Transparent;
         private int _flashDuration = 0;
 
-        // TOUS LES UI
+        // Offsets d'animation
+        private float _playerAnimOffset = 0;
+        private float _enemyAnimOffset = 0;
+
+        // Labels & Boutons
         private Label lblTitle = null!;
         private Button btnStart = null!;
         private Button btnQuit = null!;
         private Button btnCredits = null!; 
         
-        // UI de Sélection de classe
+        // Conteneurs
         private GroupBox grpClassSelect = null!;
+        private Panel pnlEncounterSelect = null!; 
+        private BufferedPanel pnlBattleScene = null!;    // Le terrain du jeu
+        private Panel pnlBottomUI = null!;               // Panel du bas (Log/Action)
+        private BufferedPanel pnlWinScreen = null!;      // Overlay Victoire/Défaite
+        private BufferedPanel pnlCreditsOverlay = null!; // Overlay Crédits
+        private GroupBox grpActions = null!;
+
+        // Boutons Dynamiques
         private Button btnFighter = null!;
         private Button btnWhiteMage = null!;
         private Button btnDarkMage = null!;
-
-        // UI de Sélection de Rencontre
-        private Panel pnlEncounterSelect = null!;
         private Button btnPathLeft = null!;
         private Button btnPathRight = null!;
-        private string _leftEnemyType = "";
-        private string _rightEnemyType = "";
-
-        // UI de Combat
-        private BufferedPanel pnlBattleScene = null!; // Pour le dessin custom
-        private Label lblPlayerStats = null!;
-        private Label lblEnemyStats = null!;
         
-        private GroupBox grpActions = null!;   
         private Button btnAttack = null!;
         private Button btnBlock = null!;
         private Button btnSpell = null!;
         private Button btnItem = null!;
         
-        // UI de Victoire
-        private BufferedPanel pnlWinScreen = null!;
-        private Label lblWinMessage = null!;
         private Button btnWinReturn = null!;
-
-        // UI de Credits (Maintenant en Popup triple chocolat)
-        private BufferedPanel pnlCreditsOverlay = null!;
-        private Label lblCreditsText = null!;
         private Button btnCreditsClose = null!;
 
+        // Labels Informatifs
+        private Label lblPlayerStats = null!;
+        private Label lblEnemyStats = null!;
+        private Label lblWinMessage = null!;
+        private Label lblCreditsText = null!;
         private RichTextBox txtGameLog = null!;
 
+        // ==========================================
+        //              INITIALISATION
+        // ==========================================
         public GameForm()
         {
-            // Configuration de la fenêtre - EN FULLSCREEN DÉSORMAIS
-            this.Text = "RudacoPG - The Adventure";
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.WindowState = FormWindowState.Maximized;
-            
-            // Le fond il est TOUT NOIR
-            this.BackColor = Color.Black; 
-            
-            // Tu peux maintenant t'échapper du jeu avec Échap
-            this.KeyPreview = true;
-            this.KeyDown += GameForm_KeyDown;
-
-            // Pour éviter le flickering
-            this.DoubleBuffered = true;
-            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
-
+            SetupWindow();
             InitializeComponents();
             InitializeAnimation(); 
             ShowMainMenu();
         }
 
+        private void SetupWindow()
+        {
+            this.Text = "RudacoPG - The Adventure";
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.WindowState = FormWindowState.Maximized;
+            this.BackColor = Color.Black; 
+            
+            // Configuration pour capturer Échap
+            this.KeyPreview = true;
+            this.KeyDown += HandleGlobalInput;
+
+            // Anti-Flickering Global
+            this.DoubleBuffered = true;
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+        }
+
         private void InitializeAnimation()
         {
             _gameTimer = new System.Windows.Forms.Timer();
-            _gameTimer.Interval = 16; // ~60 FPS (source: tkt frer)
+            _gameTimer.Interval = 16; // Cible d'environ 60 FPS
             _gameTimer.Tick += GameLoop;
             _gameTimer.Start();
         }
 
-        // On check pour la touche escape
-        private void GameForm_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Escape)
-            {
-                // On reset le chaos
-                _particles.Clear();
-                _popups.Clear();
-                _popupQueue.Clear();
-                _shakeDuration = 0;
-                
-                // De retour chez nous
-                ShowMainMenu();
-            }
-        }
-
+        // ==========================================
+        // BOUCLE DE JEU (GAME LOOP)
+        // ==========================================
         private void GameLoop(object? sender, EventArgs e)
         {
             _globalTime += 0.1f;
 
-            // Logique du shaky shakouille
+            // 1. Mise à jour des Timers d'effets
             if (_shakeDuration > 0) _shakeDuration--;
             if (_flashDuration > 0) _flashDuration--;
 
-            // Particules incroyables
+            // 2. Physique des Particules
+            UpdateParticles();
+
+            // 3. Gestion des Popups (Avec la grosse queue)
+            UpdatePopups();
+
+            // 4. Animation des Sprites
+            _playerAnimOffset = Lerp(_playerAnimOffset, 0, 0.1f);
+            _enemyAnimOffset = Lerp(_enemyAnimOffset, 0, 0.1f);
+
+            // 5. Redessin des écrans actifs
+            if (_currentState == GameState.Battle) pnlBattleScene.Invalidate();
+            if (_currentState == GameState.Victory || _currentState == GameState.GameOver) pnlWinScreen.Invalidate();
+            
+            // 6. Animation du Menu Principal
+            if (_currentState == GameState.MainMenu)
+            {
+                AnimateMainMenuTitle();
+            }
+        }
+
+        private void UpdateParticles()
+        {
             for (int i = _particles.Count - 1; i >= 0; i--)
             {
                 Particle p = _particles[i];
@@ -227,281 +242,496 @@ namespace RPGPD_Le_Jeu
                 p.Size *= 0.95f; 
                 if (p.Life <= 0) _particles.RemoveAt(i);
             }
+        }
 
-            // On update les popups
+        private void UpdatePopups()
+        {
             for (int i = _popups.Count - 1; i >= 0; i--)
             {
                 PopupText p = _popups[i];
-                p.Position.Y -= 1.0f; // Ça float un peu comme mon service au Volley (faux)
+                p.Position.Y -= 1.0f; // Float up
                 p.Life--;
                 
-                // On s'assure que l'Alpha ne dépasse jamais 1.0f, la dernière fois ça a fait crash mon ordi
+                // Calcul Alpha sécurisé
                 float rawAlpha = p.Life / 60.0f;
                 p.Alpha = Math.Min(1.0f, Math.Max(0.0f, rawAlpha)); 
 
-                if (p.Scale < 1.0f) p.Scale += 0.1f; // Pop in d'animation
+                if (p.Scale < 1.0f) p.Scale += 0.1f;
                 if (p.Life <= 0) _popups.RemoveAt(i);
             }
 
-            // On utilise la queue pour les popups
+            // Si aucun popup actif, on affiche le prochain
             if (_popups.Count == 0 && _popupQueue.Count > 0)
             {
                 _popups.Add(_popupQueue.Dequeue());
             }
+        }
 
-            // Animation des ennemis et joueurs
-            _playerAnimOffset = Lerp(_playerAnimOffset, 0, 0.1f);
-            _enemyAnimOffset = Lerp(_enemyAnimOffset, 0, 0.1f);
+        private void AnimateMainMenuTitle()
+        {
+            float scale = 1.0f + (float)Math.Sin(_globalTime * 2) * 0.05f;
+            lblTitle.Font = new Font(lblTitle.Font.FontFamily, 72 * scale, FontStyle.Italic);
+        }
 
-            // On redessine selon l'état du jeu
-            if (_currentState == GameState.Battle) pnlBattleScene.Invalidate();
-            
-            // On veut un Game Over animé
-            if (_currentState == GameState.Victory || _currentState == GameState.GameOver) pnlWinScreen.Invalidate();
-            
-            // On anime le titre dans le menu de base
-            if (_currentState == GameState.MainMenu)
+        // ==========================================
+        // GESTION DES ENTRÉES (INPUT)
+        // ==========================================
+        private void HandleGlobalInput(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
             {
-                float scale = 1.0f + (float)Math.Sin(_globalTime * 2) * 0.05f;
-                lblTitle.Font = new Font(lblTitle.Font.FontFamily, 72 * scale, FontStyle.Italic);
-                // Double recentrageage
-                CenterTitle();
+                ResetGameData();
+                ShowMainMenu();
             }
         }
 
-        private float Lerp(float firstFloat, float secondFloat, float by)
+        private void ToggleInput(bool enabled)
         {
-            return firstFloat * (1 - by) + secondFloat * by;
+            grpActions.Enabled = enabled;
         }
 
-        // On provoque le shaky shakouille
-        private void ShakeScreen(int magnitude, int duration)
-        {
-            _shakeMagnitude = magnitude;
-            _shakeDuration = duration;
-        }
+        // ==========================================
+        // LOGIQUE DU JEU (CORE)
+        // ==========================================
 
-        // MACRON EXPLOSION
-        private void SpawnParticles(int x, int y, Color c, int count)
+        private void StartGame(PlayerClass selectedClass)
         {
-            for(int i=0; i<count; i++)
+            _currentClass = selectedClass;
+            _playerLevel = 1;
+            _battlesWon = 0;
+            _potions = 3;
+
+            // Stats de base selon la classe
+            switch (_currentClass)
             {
-                _particles.Add(new Particle() {
-                    Position = new PointF(x, y),
-                    Velocity = new PointF(_rng.Next(-10, 11), _rng.Next(-10, 11)),
-                    Color = c,
-                    Size = _rng.Next(5, 15),
-                    Life = 30
-                });
+                case PlayerClass.Fighter:
+                    _playerMaxHP = 25; _playerMaxMana = 20; break;
+                case PlayerClass.WhiteMage:
+                    _playerMaxHP = 22; _playerMaxMana = 80; break;
+                case PlayerClass.DarkMage:
+                    _playerMaxHP = 18; _playerMaxMana = 100; break;
+                default: _playerMaxHP = 20; _playerMaxMana = 50; break;
+            }
+            _playerHP = _playerMaxHP;
+            _playerMana = _playerMaxMana;
+
+            Log("You chose " + _currentClass.ToString() + "!");
+            ShowEncounterSelection();
+        }
+
+        private void InitializeBattle(string enemyType)
+        {
+            _currentState = GameState.Battle;
+            ShowBattleUI();
+
+            _enemyName = enemyType;
+            _enemyIsBlocking = false; 
+            ToggleInput(true); // Réactiver les boutons
+
+            // Configuration difficulté
+            int currentDiff = _playerLevel;
+            if (currentDiff > 3) currentDiff = 3;
+            
+            // Génération via Mobs.cs
+            Mobs mobGenerator = new Mobs(currentDiff);
+            _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
+            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId);
+            _enemyHP = _enemyMaxHP;
+
+            UpdateStatsUI();
+            Log($"--- BATTLE {_battlesWon + 1} START ---");
+            Log($"You encounter a {_enemyName}!");
+        }
+
+        // --- TOUR DU JOUEUR ---
+        private async void PlayerTurn(string action)
+        {
+            if (_currentState != GameState.Battle) return;
+
+            ToggleInput(false); // Bloque l'input immédiatement
+
+            // Animation visuelle
+            if(action == "Attack") _playerAnimOffset = 200; 
+            await Task.Delay(300); // Délai de l'impact
+
+            bool turnComplete = true;
+
+            switch (action)
+            {
+                case "Attack": PerformAttack(); break;
+                case "Block": PerformBlock(); break;
+                case "Spell": turnComplete = PerformSpell(); break; // Peut échouer si pas de mana
+                case "Item": turnComplete = PerformItem(); break;   // Peut échouer si pas de potion
+            }
+
+            if (turnComplete)
+            {
+                UpdateStatsUI();
+                CheckBattleStatus();
+            }
+            else
+            {
+                // Si l'action a échoué (pas de mana), on réactive les boutons
+                ToggleInput(true);
             }
         }
 
-        // On affiche le popup de texte
-        private void SpawnPopup(string text, Color c, int size = 24)
+        private void PerformAttack()
         {
-            // J'ai enlevé la position random pour éviter que ça soit dégueulasse
-            _popupQueue.Enqueue(new PopupText()
+            int damageDealt;
+            Random rnd = new Random();
+
+            // Calcul dégâts de base
+            if (_currentClass == PlayerClass.Fighter) damageDealt = rnd.Next(3, 7);
+            else damageDealt = rnd.Next(2, 5);
+
+            // Gestion Critique
+            if (rnd.Next(0, 100) < 4) // 4%
             {
-                Text = text,
-                Position = new PointF(pnlBattleScene.Width / 2, pnlBattleScene.Height / 2),
-                Color = c,
-                Scale = 0.1f,
-                Life = 80, // Ti peu plus long
-                Alpha = 1.0f
-            });
+                damageDealt *= 2;
+                ShakeScreen(15, 10);
+                SpawnPopup("CRITICAL!", Color.Yellow, 36);
+                Log("CRITICAL HIT! You hit a weak spot!");
+            }
+            else ShakeScreen(5, 5);
+            
+            SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Red, 20);
+
+            // Gestion Blocage Ennemi (Mobs.cs)
+            HandleEnemyBlockInteraction(ref damageDealt);
+
+            _enemyHP -= damageDealt;
+            Log($"You attacked for {damageDealt} damage!");
         }
 
-        // Initialisation de tous les widgets
-        private void InitializeComponents()
+        private void HandleEnemyBlockInteraction(ref int damage)
         {
-            Rectangle screenBounds = Screen.PrimaryScreen?.Bounds ?? new Rectangle(0, 0, 1920, 1080);
-            int w = screenBounds.Width;
-            int h = screenBounds.Height;
-            int cx = w / 2;
-            int cy = h / 2;
-
-            // 1. Titre et Menu Principal
-            lblTitle = new Label();
-            lblTitle.Text = "RudacoPG";
-            lblTitle.Font = new Font("Impact", 72, FontStyle.Italic); 
-            lblTitle.AutoSize = false; // On check la taille manuellement
-            lblTitle.Size = new Size(w, 200); // Largeur max
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter; // Maintenant je centre automatiquement
-            lblTitle.ForeColor = Color.Cyan;
-            lblTitle.BackColor = Color.Transparent;
-            lblTitle.Location = new Point(0, cy - 250);
-            this.Controls.Add(lblTitle);
-
-            btnStart = CreateButton("PLAY", cx - 150, cy, (s, e) => ShowClassSelection());
-            btnCredits = CreateButton("CREDITS", cx - 150, cy + 80, (s, e) => ShowCredits());
-            btnQuit = CreateButton("QUIT", cx - 150, cy + 160, (s, e) => Application.Exit());
+            int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
+            Mobs mobCheck = new Mobs(currentDiff);
             
-            // Les crédits en overlay (moins moche)
-            pnlCreditsOverlay = new BufferedPanel();
-            pnlCreditsOverlay.Size = new Size(600, 400);
-            pnlCreditsOverlay.Location = new Point(cx - 300, cy - 200);
-            pnlCreditsOverlay.BackColor = Color.FromArgb(240, 20, 20, 20); // Semi-transparent
-            pnlCreditsOverlay.Visible = false;
-            pnlCreditsOverlay.Paint += (s, e) => {
-                e.Graphics.DrawRectangle(Pens.Cyan, 0,0, 599, 399);
-            };
-            this.Controls.Add(pnlCreditsOverlay);
+            // Prévision de l'action ennemie pour vérifier le blocage
+            int mobAction = mobCheck.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+            
+            if (mobAction == 2) // 2 = Block
+            {
+                damage /= 2;
+                int healAmount = (int)(_enemyMaxHP * 0.20);
+                _enemyHP = Math.Min(_enemyHP + healAmount, _enemyMaxHP);
+                
+                Log($"The {_enemyName} BLOCKS! Damage halved & Healed {healAmount} HP.");
+                SpawnPopup("BLOCK", Color.Cyan);
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Cyan, 10);
+            }
+        }
 
-            lblCreditsText = new Label();
-            lblCreditsText.Text = "Made with LOVE by\n\nFélix Lehoux\n&\nThomas Rudacovitch\n\nFor the Ultimate RPG Experience. (trust)";
-            lblCreditsText.Font = new Font("Arial", 18, FontStyle.Bold);
-            lblCreditsText.ForeColor = Color.White;
-            lblCreditsText.AutoSize = false;
-            lblCreditsText.Size = new Size(600, 300);
-            lblCreditsText.TextAlign = ContentAlignment.MiddleCenter;
-            lblCreditsText.Location = new Point(0, 20);
-            pnlCreditsOverlay.Controls.Add(lblCreditsText);
+        private void PerformBlock()
+        {
+            _enemyIsBlocking = true;
+            Log("You brace yourself for impact (Defense UP)!");
+            _playerMana = Math.Min(_playerMana + 5, _playerMaxMana);
+        }
 
-            btnCreditsClose = CreateButton("CLOSE", 150, 320, (s, e) => HideCredits());
-            pnlCreditsOverlay.Controls.Add(btnCreditsClose);
+        private bool PerformSpell()
+        {
+            if (_playerMana < 10)
+            {
+                Log("Not enough Mana!");
+                SpawnPopup("NO MANA", Color.Gray);
+                return false;
+            }
 
-            // 2. Sélection de Classe
-            grpClassSelect = new GroupBox();
-            grpClassSelect.Text = "CHOOSE YOUR DESTINY";
-            grpClassSelect.Font = new Font("Arial", 16, FontStyle.Bold);
-            grpClassSelect.ForeColor = Color.White;
-            grpClassSelect.Size = new Size(600, 400);
-            grpClassSelect.Location = new Point(cx - 300, cy - 200);
+            _playerMana -= 10;
+
+            if (_currentClass == PlayerClass.WhiteMage)
+            {
+                int heal = 25 + (_playerLevel * 5);
+                _playerHP = Math.Min(_playerHP + heal, _playerMaxHP);
+                Log($"You cast HEAL! Recovered {heal} HP.");
+                SpawnPopup("HEAL", Color.LightGreen);
+                SpawnParticles(200, pnlBattleScene.Height/2, Color.Gold, 20);
+            }
+            else
+            {
+                // Spells du Dark Mage et Fighter
+                int spellDmg = (_currentClass == PlayerClass.DarkMage) ? 25 + (_playerLevel * 5) : 15;
+                Color fxColor = (_currentClass == PlayerClass.DarkMage) ? Color.Purple : Color.Orange;
+                
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, fxColor, 30);
+                
+                // Block check pour les spells
+                if (_enemyIsBlocking) 
+                {
+                    spellDmg /= 2;
+                    Log("Enemy magic resistance UP! Damage halved.");
+                }
+
+                _enemyHP -= spellDmg;
+                Log($"You cast SPELL! Dealt {spellDmg} damage.");
+            }
+            return true;
+        }
+
+        private bool PerformItem()
+        {
+            if (_potions <= 0)
+            {
+                Log("No potions left!");
+                SpawnPopup("EMPTY", Color.Gray);
+                return false;
+            }
+
+            _potions--;
+            _playerHP = Math.Min(_playerHP + 50, _playerMaxHP);
+            Log("Used a Potion! +50 HP.");
+            SpawnPopup("+50 HP", Color.LightGreen);
+            SpawnParticles(200, pnlBattleScene.Height/2, Color.LightGreen, 20);
+            return true;
+        }
+
+        // --- VÉRIFICATION ET TOUR ENNEMI ---
+        private void CheckBattleStatus()
+        {
+            if (_enemyHP <= 0)
+            {
+                _enemyHP = 0;
+                UpdateStatsUI();
+                Log($"You defeated the {_enemyName}!");
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Gold, 50); 
+                WinBattle();
+            }
+            else
+            {
+                EnemyTurn();
+            }
+        }
+
+        private async void EnemyTurn()
+        {
+            await Task.Delay(1000); // Temps de réflexion
+
+            int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
+            Mobs mobAI = new Mobs(currentDiff);
+            int actionCode = mobAI.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+
+            _enemyIsBlocking = false; // Reset
+
+            switch (actionCode)
+            {
+                case 1: // Attaque
+                    await EnemyPerformAttack(false);
+                    break;
+                case 2: // Block
+                    _enemyIsBlocking = true;
+                    int regen = 5 + (currentDiff * 2);
+                    _enemyHP = Math.Min(_enemyHP + regen, _enemyMaxHP);
+                    SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Green, 10);
+                    SpawnPopup("REGEN", Color.Green);
+                    Log($"The {_enemyName} regenerates {regen} HP!");
+                    break;
+                case 3: // Spécial
+                    await EnemyPerformAttack(true);
+                    break;
+            }
+            
+            UpdateStatsUI();
+
+            if (_playerHP <= 0)
+            {
+                _playerHP = 0;
+                UpdateStatsUI();
+                GameOver();
+            }
+            
+            ToggleInput(true); // C'est au joueur de jouer
+        }
+
+        private async Task EnemyPerformAttack(bool isSpecial)
+        {
+            _enemyAnimOffset = isSpecial ? -300 : -200; // Animation
+            await Task.Delay(200);
+
+            int dmg = isSpecial ? (int)(_enemyDamage * 1.5) : _enemyDamage;
+            
+            // Critique Ennemi
+            if (_rng.Next(0, 100) < 4)
+            {
+                dmg *= 2;
+                ShakeScreen(20, 15);
+                SpawnPopup("OUCH!", Color.Red, 36);
+                Log("CRITICAL HIT! Enemy smashed you!");
+            }
+            else ShakeScreen(isSpecial ? 25 : 5, isSpecial ? 20 : 5);
+
+            // Block Joueur (Simulé ici en faisant une division si le joueur a cliqué Block)
+            
+            _playerHP -= dmg;
+            SpawnParticles(200, pnlBattleScene.Height/2, Color.Red, 15);
+            Log(isSpecial ? "SPECIAL ABILITY!" : "Enemy attacks!");
+        }
+
+        // --- FIN DE COMBAT ---
+        private void WinBattle()
+        {
+            _battlesWon++;
+
+            if (_battlesWon >= 10)
+            {
+                ShowWinScreen();
+                return;
+            }
+            
+            SpawnPopup("VICTORY!", Color.Gold, 48);
+
+            // Level Up Check
+            if (_battlesWon % 3 == 0)
+            {
+                _playerLevel++;
+                _playerMaxMana += 5;
+                _playerHP = _playerMaxHP; 
+                _playerMana = _playerMaxMana;
+                Log($"LEVEL UP! You are now level {_playerLevel}.");
+                SpawnPopup("LEVEL UP!", Color.Cyan, 60);
+                SpawnParticles(200, pnlBattleScene.Height/2, Color.Cyan, 100);
+            }
+
+            // Délai avant prochain choix
+            Task.Delay(2000).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
+                ShowEncounterSelection();
+            }));
+        }
+
+        private void GameOver()
+        {
+            _currentState = GameState.GameOver;
+            
+            // Configuration de l'overlay Game Over
+            pnlWinScreen.Visible = true;
+            pnlWinScreen.BringToFront();
+            
+            lblWinMessage.Text = "WOMP WOMP";
+            lblWinMessage.ForeColor = Color.DarkRed;
+            
+            // Délai pour le bouton
+            btnWinReturn.Visible = false;
+            btnWinReturn.Text = "TRY AGAIN";
+            
+            Task.Delay(1500).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
+                btnWinReturn.Visible = true;
+            }));
+        }
+
+        // ==========================================
+        // GESTION DE L'INTERFACE (UI & NAVIGATION)
+        // ==========================================
+
+        private void ShowMainMenu()
+        {
+            _currentState = GameState.MainMenu;
+            lblTitle.Visible = true;
+            btnStart.Visible = true;
+            btnQuit.Visible = true;
+            btnCredits.Visible = true;
             grpClassSelect.Visible = false;
-            grpClassSelect.BackColor = Color.FromArgb(20, 20, 20);
-            
-            btnFighter = CreateClassButton("FIGHTER\n(High HP/Atk)", 80, Color.DarkRed);
-            btnFighter.Click += (s, e) => StartGame(PlayerClass.Fighter);
-            
-            btnWhiteMage = CreateClassButton("WHITE MAGE\n(Heal/Def)", 160, Color.LightBlue);
-            btnWhiteMage.Click += (s, e) => StartGame(PlayerClass.WhiteMage);
-
-            btnDarkMage = CreateClassButton("DARK MAGE\n(High Dmg Spell)", 240, Color.Purple);
-            btnDarkMage.Click += (s, e) => StartGame(PlayerClass.DarkMage);
-
-            grpClassSelect.Controls.Add(btnFighter);
-            grpClassSelect.Controls.Add(btnWhiteMage);
-            grpClassSelect.Controls.Add(btnDarkMage);
-            this.Controls.Add(grpClassSelect);
-
-            // Split le screen
-            pnlEncounterSelect = new Panel();
-            pnlEncounterSelect.Dock = DockStyle.Fill; 
-            pnlEncounterSelect.BackColor = Color.Black;
             pnlEncounterSelect.Visible = false;
-            this.Controls.Add(pnlEncounterSelect);
-
-            // Bouton Gauche (Screen splité)
-            btnPathLeft = new Button();
-            btnPathLeft.Location = new Point(0, 0);
-            btnPathLeft.Size = new Size(w/2, h); 
-            btnPathLeft.FlatStyle = FlatStyle.Flat;
-            btnPathLeft.FlatAppearance.BorderSize = 0;
-            btnPathLeft.BackColor = Color.FromArgb(20, 20, 20);
-            btnPathLeft.ForeColor = Color.White;
-            btnPathLeft.Font = new Font("Courier New", 24, FontStyle.Bold);
-            btnPathLeft.Click += (s, e) => SelectPath(true);
-            btnPathLeft.MouseEnter += (s,e) => btnPathLeft.BackColor = Color.FromArgb(40,40,40);
-            btnPathLeft.MouseLeave += (s,e) => btnPathLeft.BackColor = Color.FromArgb(20,20,20);
-            pnlEncounterSelect.Controls.Add(btnPathLeft);
-
-            // Bouton Droit (Screen splité)
-            btnPathRight = new Button();
-            btnPathRight.Location = new Point(w/2, 0);
-            btnPathRight.Size = new Size(w/2, h); 
-            btnPathRight.FlatStyle = FlatStyle.Flat;
-            btnPathRight.FlatAppearance.BorderSize = 0;
-            btnPathRight.BackColor = Color.FromArgb(15, 15, 15);
-            btnPathRight.ForeColor = Color.White;
-            btnPathRight.Font = new Font("Courier New", 24, FontStyle.Bold);
-            btnPathRight.Click += (s, e) => SelectPath(false);
-            btnPathRight.MouseEnter += (s,e) => btnPathRight.BackColor = Color.FromArgb(35,35,35);
-            btnPathRight.MouseLeave += (s,e) => btnPathRight.BackColor = Color.FromArgb(15,15,15);
-            pnlEncounterSelect.Controls.Add(btnPathRight);
-
-            // 3. Phase de pétage de yeules
-            pnlBattleScene = new BufferedPanel();
-            pnlBattleScene.Dock = DockStyle.Top;
-            pnlBattleScene.Height = h - 250; 
-            pnlBattleScene.BackColor = Color.Black;
-            pnlBattleScene.Visible = false;
-            pnlBattleScene.Paint += BattleScene_Paint; 
-            this.Controls.Add(pnlBattleScene);
-
-            // Stats Affichées
-            lblEnemyStats = new Label { Text = "", AutoSize = true, Location = new Point(w - 300, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Red, BackColor = Color.Transparent };
-            pnlBattleScene.Controls.Add(lblEnemyStats);
-
-            lblPlayerStats = new Label { Text = "", AutoSize = true, Location = new Point(50, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Cyan, BackColor = Color.Transparent };
-            pnlBattleScene.Controls.Add(lblPlayerStats);
-
-            // 4. Zone de Log
-            txtGameLog = new RichTextBox();
-            txtGameLog.Location = new Point(20, h - 220);
-            txtGameLog.Size = new Size(w/2 - 40, 200);
-            txtGameLog.ReadOnly = true;
-            txtGameLog.BackColor = Color.FromArgb(10, 10, 10);
-            txtGameLog.ForeColor = Color.LightGray;
-            txtGameLog.Font = new Font("Consolas", 12);
-            txtGameLog.BorderStyle = BorderStyle.None;
-            txtGameLog.Visible = false;
-            this.Controls.Add(txtGameLog);
-
-            // 5. Menu d'action
-            grpActions = new GroupBox();
-            grpActions.Text = "";
-            grpActions.Location = new Point(w/2, h - 230);
-            grpActions.Size = new Size(w/2 - 20, 210);
-            grpActions.Visible = false;
-            grpActions.BackColor = Color.Transparent;
-            this.Controls.Add(grpActions);
-
-            int bx = 20; int by = 20; int bw = (grpActions.Width / 2) - 40; int bh = 80;
-
-            btnAttack = CreateActionButton("ATTACK", bx, by, bw, bh, Color.DarkRed);
-            btnAttack.Click += (s, e) => PlayerTurn("Attack");
-
-            btnBlock = CreateActionButton("BLOCK", bx + bw + 20, by, bw, bh, Color.DarkBlue);
-            btnBlock.Click += (s, e) => PlayerTurn("Block");
-
-            btnSpell = CreateActionButton("SPELL", bx, by + bh + 20, bw, bh, Color.Purple);
-            btnSpell.Click += (s, e) => PlayerTurn("Spell");
-
-            btnItem = CreateActionButton("ITEM", bx + bw + 20, by + bh + 20, bw, bh, Color.DarkGreen);
-            btnItem.Click += (s, e) => PlayerTurn("Item");
-
-            grpActions.Controls.AddRange(new Control[] { btnAttack, btnBlock, btnSpell, btnItem });
-
-            // Écran de victoire (Ma plus belle création à ce jour)
-            pnlWinScreen = new BufferedPanel();
-            pnlWinScreen.Dock = DockStyle.Fill;
-            pnlWinScreen.BackColor = Color.Black;
             pnlWinScreen.Visible = false;
-            pnlWinScreen.Paint += WinScreen_Paint;
-            this.Controls.Add(pnlWinScreen);
-
-            lblWinMessage = new Label();
-            lblWinMessage.Text = "VICTORY!";
-            lblWinMessage.Font = new Font("Impact", 72, FontStyle.Italic);
-            lblWinMessage.ForeColor = Color.Gold;
-            lblWinMessage.AutoSize = false;
-            lblWinMessage.Size = new Size(w, 300);
-            lblWinMessage.TextAlign = ContentAlignment.MiddleCenter;
-            lblWinMessage.Location = new Point(0, cy - 200);
-            lblWinMessage.BackColor = Color.Transparent;
-            pnlWinScreen.Controls.Add(lblWinMessage);
-
-            btnWinReturn = CreateButton("RETURN TO MAIN MENU", cx - 150, cy + 150, (s, e) => ShowMainMenu());
-            pnlWinScreen.Controls.Add(btnWinReturn);
+            pnlCreditsOverlay.Visible = false;
+            HideBattleUI();
         }
 
-        private void CenterTitle()
+        private void ShowClassSelection()
         {
-            // Cette fonction-là me fais juste rire tellement elle est vide mais elle sert actually à quelque chose plus haut
+            _currentState = GameState.ClassSelection;
+            btnStart.Visible = false;
+            btnQuit.Visible = false;
+            btnCredits.Visible = false;
+            grpClassSelect.Visible = true;
+            lblTitle.Visible = false;
         }
 
+        private void ShowEncounterSelection()
+        {
+            _currentState = GameState.EncounterSelect;
+            grpClassSelect.Visible = false;
+            HideBattleUI();
+            pnlEncounterSelect.Visible = true;
+            pnlWinScreen.Visible = false;
+            
+            GenerateEncounterChoices();
+        }
 
-        // LES ANIMATIONS DE PRO DE FÉLIX
+        private void GenerateEncounterChoices()
+        {
+            int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
+            Mobs mobGenerator = new Mobs(currentDiff);
+
+            _leftMobId = mobGenerator.Générer_choix_Mob();
+            _rightMobId = mobGenerator.Générer_choix_Mob();
+
+            _leftEnemyType = GetMobName(currentDiff, _leftMobId);
+            _rightEnemyType = GetMobName(currentDiff, _rightMobId);
+
+            bool leftJammed = _rng.Next(0, 100) < 15;
+            bool rightJammed = _rng.Next(0, 100) < 15;
+
+            string leftText = leftJammed ? "?? JAMMED ??" : _leftEnemyType;
+            string rightText = rightJammed ? "?? JAMMED ??" : _rightEnemyType;
+
+            btnPathLeft.Text = $"PATH A\n\nStrange Corridor.\n\nSenses detect:\n{leftText}";
+            btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{rightText}";
+            
+            btnPathLeft.ForeColor = leftJammed ? Color.Gray : Color.White;
+            btnPathRight.ForeColor = rightJammed ? Color.Gray : Color.White;
+        }
+
+        private void SelectPath(bool isLeft)
+        {
+            string enemyName = isLeft ? _leftEnemyType : _rightEnemyType;
+            _selectedMobId = isLeft ? _leftMobId : _rightMobId;
+            InitializeBattle(enemyName);
+        }
+
+        private void ShowWinScreen()
+        {
+            _currentState = GameState.Victory;
+            HideBattleUI();
+            pnlEncounterSelect.Visible = false;
+            pnlWinScreen.Visible = true;
+            pnlWinScreen.BringToFront();
+            
+            lblWinMessage.Text = "VICTORY!";
+            lblWinMessage.ForeColor = Color.Gold;
+            btnWinReturn.Text = "RETURN TO MAIN MENU";
+            btnWinReturn.Visible = true;
+        }
+
+        private void ShowCredits() { pnlCreditsOverlay.Visible = true; pnlCreditsOverlay.BringToFront(); }
+        private void HideCredits() { pnlCreditsOverlay.Visible = false; }
+        private void HideBattleUI() { pnlBattleScene.Visible = false; pnlBottomUI.Visible = false; }
+        
+        // Gestion de l'overlapping
+        private void ShowBattleUI() 
+        { 
+            lblTitle.Visible = false;
+            grpClassSelect.Visible = false;
+            pnlEncounterSelect.Visible = false;
+            pnlWinScreen.Visible = false;
+            pnlCreditsOverlay.Visible = false;
+
+            pnlBattleScene.Visible = true; 
+            pnlBottomUI.Visible = true; 
+        }
+
+        private void ResetGameData()
+        {
+            _particles.Clear();
+            _popups.Clear();
+            _popupQueue.Clear();
+            _shakeDuration = 0;
+        }
+
+        // ==========================================
+        // RENDU GRAPHIQUE (DESSINS)
+        // ==========================================
 
         private void BattleScene_Paint(object? sender, PaintEventArgs e)
         {
@@ -510,13 +740,54 @@ namespace RPGPD_Le_Jeu
             int w = pnlBattleScene.Width;
             int h = pnlBattleScene.Height;
 
-            // 1. Je dessine le fond en mode spatial
-            int offset = (int)(_globalTime * 2) % w;
+            DrawBackground(g, w, h);
+            ApplyShake(g);
+            
+            // Dessins des entités
+            DrawPlayer(g, w, h);
+            DrawMob(g, w, h, _enemyName);
+            
+            // Dessins des effets
+            DrawParticles(g);
+            DrawPopups(g);
+            DrawFlash(g, w, h);
+        }
+
+        private void WinScreen_Paint(object? sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            int w = pnlWinScreen.Width;
+            int h = pnlWinScreen.Height;
+
+            if (_currentState == GameState.Victory)
+            {
+                // Particules dorées
+                for(int i=0; i<100; i++)
+                {
+                    int x = _rng.Next(w);
+                    int y = (int)((_rng.Next(h) + _globalTime * 5) % h);
+                    g.FillEllipse(Brushes.Gold, x, y, 5, 5);
+                }
+            }
+            else if (_currentState == GameState.GameOver)
+            {
+                // Pluie de la terreur terorisante
+                for(int i=0; i<100; i++)
+                {
+                    int x = _rng.Next(w);
+                    int y = (int)((_rng.Next(h) + _globalTime * 15) % h);
+                    g.FillRectangle(Brushes.DarkRed, x, y, 2, 10);
+                }
+            }
+        }
+
+        // Helpers de dessin
+        private void DrawBackground(Graphics g, int w, int h)
+        {
             using (LinearGradientBrush brush = new LinearGradientBrush(new Point(0,0), new Point(w, h), Color.FromArgb(20,0,20), Color.Black))
             {
                 g.FillRectangle(brush, 0, 0, w, h);
             }
-            
             // Étoiles
             Random r = new Random(1234); 
             for(int i=0; i<50; i++)
@@ -530,152 +801,46 @@ namespace RPGPD_Le_Jeu
                     g.FillEllipse(b, x, y, size, size);
                 }
             }
+        }
 
-            // Shaky Shakouille
-            int shakeX = 0, shakeY = 0;
+        private void ApplyShake(Graphics g)
+        {
             if(_shakeDuration > 0)
             {
-                shakeX = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
-                shakeY = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
+                int shakeX = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
+                int shakeY = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
+                g.TranslateTransform(shakeX, shakeY);
             }
-            g.TranslateTransform(shakeX, shakeY);
+        }
 
-            // 2. Je dessine le joueur 
+        private void DrawPlayer(Graphics g, int w, int h)
+        {
             float breathe = (float)Math.Sin(_globalTime * 0.2f) * 5;
-            float playerX = 200 + _playerAnimOffset;
-            float playerY = h/2;
-            DrawPlayer(g, playerX, playerY + breathe, _currentClass);
+            float x = 200 + _playerAnimOffset;
+            float y = h/2 + breathe;
 
-            // 3. Je dessine l'ennemi
-            float enemyBreathe = (float)Math.Sin(_globalTime * 0.15f + 2) * 8;
-            float enemyX = w - 300 + _enemyAnimOffset;
-            float enemyY = h/2 - 50;
-            DrawMob(g, enemyX, enemyY + enemyBreathe, _enemyName);
-
-            // 4. Je dessine les particules
-            foreach (var p in _particles)
-            {
-                // Ellipse de sécurité pour les particules
-                int alpha = Math.Min(255, Math.Max(0, (int)(p.Life * 8.5)));
-                using(SolidBrush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
-                {
-                    g.FillEllipse(b, p.Position.X, p.Position.Y, p.Size, p.Size);
-                }
-            }
-
-            // 5. Je dessine les popups (Level Up, Damage, etc.)
-            foreach(var p in _popups)
-            {
-                // Distance de sécurité pour les popups
-                int alpha = Math.Min(255, Math.Max(0, (int)(p.Alpha * 255)));
-                
-                // JE LES METS PLUS GROS ET VISIBLES
-                using(Font font = new Font("Impact", 60 * p.Scale, FontStyle.Bold))
-                using(Brush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
-                {
-                    // On centre le tout
-                    SizeF size = g.MeasureString(p.Text, font);
-                    g.DrawString(p.Text, font, b, p.Position.X - size.Width/2, p.Position.Y - size.Height/2);
-                }
-            }
-
-            // 6. J'ajoute un effet de flash
-            if(_flashDuration > 0)
-            {
-                using(SolidBrush b = new SolidBrush(Color.FromArgb(100, 255, 255, 255)))
-                {
-                    g.FillRectangle(b, 0, 0, w, h);
-                }
-            }
-        }
-
-        private void WinScreen_Paint(object? sender, PaintEventArgs e)
-        {
-            // Fond animé pendant la victoire
-            Graphics g = e.Graphics;
-            int w = pnlWinScreen.Width;
-            int h = pnlWinScreen.Height;
-            
-            if (_currentState == GameState.Victory)
-            {
-                float hue = (_globalTime * 2) % 360;
-                // Le souffle de Morphée en personne
-                Random r = new Random(4321);
-                for(int i=0; i<100; i++)
-                {
-                    int x = r.Next(w);
-                    int y = (int)((r.Next(h) + _globalTime * 5) % h);
-                    g.FillEllipse(Brushes.Gold, x, y, 5, 5);
-                }
-            }
-            else if (_currentState == GameState.GameOver)
-            {
-                // Animation de défaite (WOMP WOMP)
-                
-                // Fond rouge menaçant qui pulse de façon menaçante
-                int redPulse = 50 + (int)(Math.Sin(_globalTime) * 20);
-                using (SolidBrush bg = new SolidBrush(Color.FromArgb(redPulse, 0, 0)))
-                {
-                    g.FillRectangle(bg, 0, 0, w, h);
-                }
-
-                // Pluie de tristesse
-                Random r = new Random(666); // (Méga important pour lancer une curse sur le joueur dans la vraie vie)
-                for (int i = 0; i < 150; i++)
-                {
-                    int x = r.Next(w);
-                    // La pluie tombe vite, très vite
-                    int speed = r.Next(10, 25);
-                    int y = (int)((r.Next(h) + _globalTime * speed) % h);
-                    
-                    // Couleur gris/rouge foncé
-                    using (SolidBrush b = new SolidBrush(Color.FromArgb(100, 150, 0, 0)))
-                    {
-                        g.FillRectangle(b, x, y, 2, 15);
-                    }
-                }
-
-                // Titre
-                string sadText = "Womp Womp...";
-                using (Font f = new Font("Courier New", 36, FontStyle.Bold))
-                {
-                    SizeF size = g.MeasureString(sadText, f);
-                    float txtX = (w - size.Width) / 2;
-                    float txtY = (h / 2) + 80; // Juste en dessous du "GAME OVER"
-
-                    // Shaky Shakouille de l'humilialtion
-                    float shakeX = (float)Math.Sin(_globalTime * 10) * 2;
-                    float shakeY = (float)Math.Cos(_globalTime * 15) * 2;
-
-                    g.DrawString(sadText, f, Brushes.Gray, txtX + shakeX, txtY + shakeY);
-                }
-            }
-        }
-
-        private void DrawPlayer(Graphics g, float x, float y, PlayerClass cls)
-        {
             using(SolidBrush b = new SolidBrush(Color.SteelBlue))
                 g.FillEllipse(b, x, y, 80, 80);
             
             using(SolidBrush b = new SolidBrush(Color.PeachPuff))
                 g.FillEllipse(b, x+15, y-30, 50, 50);
 
-            if (cls == PlayerClass.Fighter)
+            // Accessoires
+            if (_currentClass == PlayerClass.Fighter)
             {
-                using(Pen p = new Pen(Color.Silver, 5))
-                    g.DrawLine(p, x+60, y+40, x+100, y+10);
+                using(Pen p = new Pen(Color.Silver, 5)) g.DrawLine(p, x+60, y+40, x+100, y+10);
             }
-            else if (cls == PlayerClass.DarkMage)
+            else if (_currentClass == PlayerClass.DarkMage)
             {
                 PointF[] hat = { new PointF(x+10, y-30), new PointF(x+70, y-30), new PointF(x+40, y-80) };
                 g.FillPolygon(Brushes.Purple, hat);
             }
-            else // Mage Blanc Suprématiste
+            else // Mage Blanc
             {
-                using(Pen p = new Pen(Color.Gold, 3))
-                    g.DrawEllipse(p, x+15, y-50, 50, 10);
+                using(Pen p = new Pen(Color.Gold, 3)) g.DrawEllipse(p, x+15, y-50, 50, 10);
             }
 
+            // Clignement des yeux
             if ((int)(_globalTime * 10) % 50 > 2)
             {
                 g.FillEllipse(Brushes.Black, x+30, y-15, 5, 5);
@@ -683,8 +848,12 @@ namespace RPGPD_Le_Jeu
             }
         }
 
-        private void DrawMob(Graphics g, float x, float y, string name)
+        private void DrawMob(Graphics g, int w, int h, string name)
         {
+            float breathe = (float)Math.Sin(_globalTime * 0.15f + 2) * 8;
+            float x = w - 300 + _enemyAnimOffset;
+            float y = h/2 - 50 + breathe;
+
             if (name.Contains("Goblin") || name.Contains("Gobelin"))
             {
                 g.FillEllipse(Brushes.ForestGreen, x, y, 100, 100);
@@ -734,7 +903,320 @@ namespace RPGPD_Le_Jeu
             }
         }
 
-        private Button CreateButton(string text, int x, int y, EventHandler onClick)
+        private void DrawParticles(Graphics g)
+        {
+            foreach (var p in _particles)
+            {
+                int alpha = Math.Min(255, Math.Max(0, (int)(p.Life * 8.5)));
+                using(SolidBrush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
+                {
+                    g.FillEllipse(b, p.Position.X, p.Position.Y, p.Size, p.Size);
+                }
+            }
+        }
+
+        private void DrawPopups(Graphics g)
+        {
+            foreach(var p in _popups)
+            {
+                int alpha = Math.Min(255, Math.Max(0, (int)(p.Alpha * 255)));
+                using(Font font = new Font("Impact", 60 * p.Scale, FontStyle.Bold))
+                using(Brush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
+                {
+                    SizeF size = g.MeasureString(p.Text, font);
+                    g.DrawString(p.Text, font, b, p.Position.X - size.Width/2, p.Position.Y - size.Height/2);
+                }
+            }
+        }
+
+        private void DrawFlash(Graphics g, int w, int h)
+        {
+            if(_flashDuration > 0)
+            {
+                using(SolidBrush b = new SolidBrush(Color.FromArgb(100, 255, 255, 255)))
+                {
+                    g.FillRectangle(b, 0, 0, w, h);
+                }
+            }
+        }
+
+        // ==========================================
+        // HELPERS LOGIQUE (MATHS & MOBS)
+        // ==========================================
+
+        private float Lerp(float firstFloat, float secondFloat, float by)
+        {
+            return firstFloat * (1 - by) + secondFloat * by;
+        }
+
+        private void ShakeScreen(int magnitude, int duration)
+        {
+            _shakeMagnitude = magnitude;
+            _shakeDuration = duration;
+        }
+
+        private void SpawnParticles(float x, float y, Color c, int count)
+        {
+            for(int i=0; i<count; i++)
+            {
+                _particles.Add(new Particle() {
+                    Position = new PointF(x, y),
+                    Velocity = new PointF(_rng.Next(-10, 11), _rng.Next(-10, 11)),
+                    Color = c,
+                    Size = _rng.Next(5, 15),
+                    Life = 30
+                });
+            }
+        }
+
+        private void SpawnPopup(string text, Color c, int size = 24)
+        {
+            _popupQueue.Enqueue(new PopupText()
+            {
+                Text = text,
+                Position = new PointF(pnlBattleScene.Width / 2, pnlBattleScene.Height / 2),
+                Color = c,
+                Scale = 0.1f,
+                Life = 80, 
+                Alpha = 1.0f
+            });
+        }
+
+        private void Log(string message)
+        {
+            txtGameLog.AppendText($"> {message}\n");
+            txtGameLog.ScrollToCaret();
+        }
+
+        private void UpdateStatsUI()
+        {
+            lblPlayerStats.Text = $"YOU (Lvl {_playerLevel})\nHP: {_playerHP}/{_playerMaxHP}\nMP: {_playerMana}/{_playerMaxMana}\nPotions: {_potions}";
+            lblEnemyStats.Text = $"{_enemyName}\nHP: {_enemyHP}/{_enemyMaxHP}";
+        }
+
+        private string GetMobName(int difficulty, int choix)
+        {
+            // J'ai un peu répliqué la logique pour nommer basée sur Mobs.cs
+            switch (difficulty)
+            {
+                case 1:
+                    if (choix == 1) return "Gobelin";
+                    if (choix == 2) return "Squelette";
+                    if (choix == 3) return "Gros Rat";
+                    break;
+                case 2:
+                    if (choix == 1) return "Orc";
+                    if (choix == 2) return "Slime";
+                    if (choix == 3) return "Mage Gobelin";
+                    break;
+                case 3:
+                    if (choix == 1) return "Troll";
+                    if (choix == 2) return "Champion squelette";
+                    if (choix == 3) return "Sirène";
+                    break;
+            }
+            return "Unknown Horror";
+        }
+
+        // ==========================================
+        // INITIALISATION DES COMPOSANTS (UI)
+        // ==========================================
+        private void InitializeComponents()
+        {
+            // Utilisation des bordures d'écran en fullscreen
+            Rectangle screenBounds = Screen.PrimaryScreen?.Bounds ?? new Rectangle(0, 0, 1920, 1080);
+            int w = screenBounds.Width;
+            int h = screenBounds.Height;
+            int cx = w / 2;
+            int cy = h / 2;
+
+            // 1. Titre
+            lblTitle = new Label();
+            lblTitle.Text = "RudacoPG";
+            lblTitle.Font = new Font("Impact", 72, FontStyle.Italic); 
+            lblTitle.AutoSize = false; 
+            lblTitle.Size = new Size(w, 200); 
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter; 
+            lblTitle.ForeColor = Color.Cyan;
+            lblTitle.BackColor = Color.Transparent;
+            lblTitle.Location = new Point(0, cy - 250);
+            this.Controls.Add(lblTitle);
+
+            // 2. Boutons du menu
+            btnStart = CreateMenuButton("PLAY", cx - 150, cy, (s, e) => ShowClassSelection());
+            btnCredits = CreateMenuButton("CREDITS", cx - 150, cy + 80, (s, e) => ShowCredits());
+            btnQuit = CreateMenuButton("QUIT", cx - 150, cy + 160, (s, e) => Application.Exit());
+            
+            // 3. Crédits
+            SetupCreditsOverlay(cx, cy);
+
+            // 4. Sélection de classe
+            SetupClassSelection(cx, cy);
+
+            // 5. Sélection du mob
+            SetupEncounterSelect(w, h);
+
+            // 6. Scène de combat
+            SetupBattleScene(w, h);
+
+            // 7. Victoire/Défaite
+            SetupWinScreen(w, h, cx, cy);
+        }
+
+        private void SetupCreditsOverlay(int cx, int cy)
+        {
+            pnlCreditsOverlay = new BufferedPanel();
+            pnlCreditsOverlay.Size = new Size(600, 400);
+            pnlCreditsOverlay.Location = new Point(cx - 300, cy - 200);
+            pnlCreditsOverlay.BackColor = Color.FromArgb(240, 20, 20, 20); 
+            pnlCreditsOverlay.Visible = false;
+            pnlCreditsOverlay.Paint += (s, e) => e.Graphics.DrawRectangle(Pens.Cyan, 0,0, 599, 399);
+            this.Controls.Add(pnlCreditsOverlay);
+
+            lblCreditsText = new Label();
+            lblCreditsText.Text = "Made with LOVE by\n\nFélix Lehoux\n&\nThomas Rudacovitch\n\nFor the Ultimate RPG Experience.";
+            lblCreditsText.Font = new Font("Arial", 18, FontStyle.Bold);
+            lblCreditsText.ForeColor = Color.White;
+            lblCreditsText.AutoSize = false;
+            lblCreditsText.Size = new Size(600, 300);
+            lblCreditsText.TextAlign = ContentAlignment.MiddleCenter;
+            lblCreditsText.Location = new Point(0, 20);
+            pnlCreditsOverlay.Controls.Add(lblCreditsText);
+
+            btnCreditsClose = CreateMenuButton("CLOSE", 150, 320, (s, e) => HideCredits());
+            pnlCreditsOverlay.Controls.Add(btnCreditsClose);
+        }
+
+        private void SetupClassSelection(int cx, int cy)
+        {
+            grpClassSelect = new GroupBox();
+            grpClassSelect.Text = "CHOOSE YOUR DESTINY";
+            grpClassSelect.Font = new Font("Arial", 16, FontStyle.Bold);
+            grpClassSelect.ForeColor = Color.White;
+            grpClassSelect.Size = new Size(600, 400);
+            grpClassSelect.Location = new Point(cx - 300, cy - 200);
+            grpClassSelect.Visible = false;
+            grpClassSelect.BackColor = Color.FromArgb(20, 20, 20);
+            
+            btnFighter = CreateClassButton("FIGHTER\n(High HP/Atk)", 80, Color.DarkRed);
+            btnFighter.Click += (s, e) => StartGame(PlayerClass.Fighter);
+            
+            btnWhiteMage = CreateClassButton("WHITE MAGE\n(Heal/Def)", 160, Color.LightBlue);
+            btnWhiteMage.Click += (s, e) => StartGame(PlayerClass.WhiteMage);
+
+            btnDarkMage = CreateClassButton("DARK MAGE\n(High Dmg Spell)", 240, Color.Purple);
+            btnDarkMage.Click += (s, e) => StartGame(PlayerClass.DarkMage);
+
+            grpClassSelect.Controls.Add(btnFighter);
+            grpClassSelect.Controls.Add(btnWhiteMage);
+            grpClassSelect.Controls.Add(btnDarkMage);
+            this.Controls.Add(grpClassSelect);
+        }
+
+        private void SetupEncounterSelect(int w, int h)
+        {
+            pnlEncounterSelect = new Panel();
+            pnlEncounterSelect.Dock = DockStyle.Fill; 
+            pnlEncounterSelect.BackColor = Color.Black;
+            pnlEncounterSelect.Visible = false;
+            this.Controls.Add(pnlEncounterSelect);
+
+            btnPathLeft = CreatePathButton(0, 0, w/2, h);
+            btnPathLeft.Click += (s, e) => SelectPath(true);
+            pnlEncounterSelect.Controls.Add(btnPathLeft);
+
+            btnPathRight = CreatePathButton(w/2, 0, w/2, h);
+            btnPathRight.Click += (s, e) => SelectPath(false);
+            pnlEncounterSelect.Controls.Add(btnPathRight);
+        }
+
+        private void SetupBattleScene(int w, int h)
+        {
+            // Je crée le pannel du bas en premier
+            pnlBottomUI = new Panel();
+            pnlBottomUI.Dock = DockStyle.Bottom;
+            pnlBottomUI.Height = 250;
+            pnlBottomUI.BackColor = Color.Transparent; // On montre le background noir
+            this.Controls.Add(pnlBottomUI);
+
+            // Système de log des événements (Console)
+            txtGameLog = new RichTextBox();
+            txtGameLog.Location = new Point(20, 20);
+            txtGameLog.Size = new Size(w/2 - 40, 210);
+            txtGameLog.ReadOnly = true;
+            txtGameLog.BackColor = Color.FromArgb(10, 10, 10);
+            txtGameLog.ForeColor = Color.LightGray;
+            txtGameLog.Font = new Font("Consolas", 12);
+            txtGameLog.BorderStyle = BorderStyle.None;
+            pnlBottomUI.Controls.Add(txtGameLog);
+
+            // Actions à l'intérieur du pannel
+            grpActions = new GroupBox();
+            grpActions.Text = "";
+            grpActions.Location = new Point(w/2, 10);
+            grpActions.Size = new Size(w/2 - 20, 230);
+            grpActions.BackColor = Color.Transparent;
+            pnlBottomUI.Controls.Add(grpActions);
+
+            int bx = 20; int by = 20; int bw = (grpActions.Width / 2) - 40; int bh = 80;
+
+            btnAttack = CreateActionButton("ATTACK", bx, by, bw, bh, Color.DarkRed);
+            btnAttack.Click += (s, e) => PlayerTurn("Attack");
+
+            btnBlock = CreateActionButton("BLOCK", bx + bw + 20, by, bw, bh, Color.DarkBlue);
+            btnBlock.Click += (s, e) => PlayerTurn("Block");
+
+            btnSpell = CreateActionButton("SPELL", bx, by + bh + 20, bw, bh, Color.Purple);
+            btnSpell.Click += (s, e) => PlayerTurn("Spell");
+
+            btnItem = CreateActionButton("ITEM", bx + bw + 20, by + bh + 20, bw, bh, Color.DarkGreen);
+            btnItem.Click += (s, e) => PlayerTurn("Item");
+
+            grpActions.Controls.AddRange(new Control[] { btnAttack, btnBlock, btnSpell, btnItem });
+
+            // Créer la scène de bataille
+            pnlBattleScene = new BufferedPanel();
+            pnlBattleScene.Dock = DockStyle.Fill; 
+            pnlBattleScene.BackColor = Color.Black;
+            pnlBattleScene.Visible = false;
+            pnlBattleScene.Paint += BattleScene_Paint; 
+            this.Controls.Add(pnlBattleScene); // Ajoute le dernier pour remplir l'espace du dessous
+
+            lblEnemyStats = new Label { Text = "", AutoSize = true, Location = new Point(w - 300, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Red, BackColor = Color.Transparent };
+            pnlBattleScene.Controls.Add(lblEnemyStats);
+
+            lblPlayerStats = new Label { Text = "", AutoSize = true, Location = new Point(50, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Cyan, BackColor = Color.Transparent };
+            pnlBattleScene.Controls.Add(lblPlayerStats);
+        }
+
+        private void SetupWinScreen(int w, int h, int cx, int cy)
+        {
+            pnlWinScreen = new BufferedPanel();
+            pnlWinScreen.Dock = DockStyle.Fill;
+            pnlWinScreen.BackColor = Color.Black;
+            pnlWinScreen.Visible = false;
+            pnlWinScreen.Paint += WinScreen_Paint;
+            this.Controls.Add(pnlWinScreen);
+            pnlWinScreen.BringToFront(); // On s'assure que se soit sur le dessus
+
+            lblWinMessage = new Label();
+            lblWinMessage.Text = "VICTORY!";
+            lblWinMessage.Font = new Font("Impact", 72, FontStyle.Italic);
+            lblWinMessage.ForeColor = Color.Gold;
+            lblWinMessage.AutoSize = false;
+            lblWinMessage.Size = new Size(w, 300);
+            lblWinMessage.TextAlign = ContentAlignment.MiddleCenter;
+            lblWinMessage.Location = new Point(0, cy - 200);
+            lblWinMessage.BackColor = Color.Transparent;
+            pnlWinScreen.Controls.Add(lblWinMessage);
+
+            btnWinReturn = CreateMenuButton("RETURN TO MAIN MENU", cx - 150, cy + 150, (s, e) => ShowMainMenu());
+            pnlWinScreen.Controls.Add(btnWinReturn);
+        }
+
+        // --- Création des boutons ---
+
+        private Button CreateMenuButton(string text, int x, int y, EventHandler onClick)
         {
             Button btn = new Button();
             btn.Text = text;
@@ -751,7 +1233,7 @@ namespace RPGPD_Le_Jeu
             btn.MouseLeave += (s, e) => { btn.BackColor = Color.FromArgb(40,40,40); btn.Size = new Size(300, 70); btn.Location = new Point(x, y); };
             
             btn.Click += onClick;
-            this.Controls.Add(btn);
+            this.Controls.Add(btn); // On ajoute au parent
             return btn;
         }
 
@@ -783,485 +1265,23 @@ namespace RPGPD_Le_Jeu
             
             btn.MouseEnter += (s, e) => btn.FlatAppearance.BorderColor = Color.Yellow;
             btn.MouseLeave += (s, e) => btn.FlatAppearance.BorderColor = Color.White;
-            
             return btn;
         }
 
-        // GESTION DES ÉCRANS
-        private void ShowMainMenu()
+        private Button CreatePathButton(int x, int y, int w, int h)
         {
-            _currentState = GameState.MainMenu;
-            lblTitle.Visible = true;
-            btnStart.Visible = true;
-            btnQuit.Visible = true;
-            btnCredits.Visible = true;
-            grpClassSelect.Visible = false;
-            pnlEncounterSelect.Visible = false;
-            pnlWinScreen.Visible = false;
-            pnlCreditsOverlay.Visible = false;
-            HideBattleUI();
-        }
-
-        private void ShowClassSelection()
-        {
-            _currentState = GameState.ClassSelection;
-            btnStart.Visible = false;
-            btnQuit.Visible = false;
-            btnCredits.Visible = false;
-            grpClassSelect.Visible = true;
-            lblTitle.Visible = false;
-        }
-
-        private void ShowWinScreen()
-        {
-            _currentState = GameState.Victory;
-            HideBattleUI();
-            pnlEncounterSelect.Visible = false;
-            pnlWinScreen.Visible = true;
-            pnlWinScreen.BringToFront(); // Je m'assure que c'est sur le top
-        }
-
-        private void ShowCredits()
-        {
-            pnlCreditsOverlay.Visible = true;
-            pnlCreditsOverlay.BringToFront();
-        }
-
-        private void HideCredits()
-        {
-            pnlCreditsOverlay.Visible = false;
-        }
-        
-        private void ShowEncounterSelection()
-        {
-            _currentState = GameState.EncounterSelect;
-            grpClassSelect.Visible = false;
-            HideBattleUI();
-            pnlEncounterSelect.Visible = true;
-            pnlWinScreen.Visible = false;
+            Button btn = new Button();
+            btn.Location = new Point(x, y);
+            btn.Size = new Size(w, h);
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.BackColor = Color.FromArgb(20, 20, 20);
+            btn.ForeColor = Color.White;
+            btn.Font = new Font("Courier New", 24, FontStyle.Bold);
             
-            Random rnd = new Random();
-
-            int currentDiff = _playerLevel;
-            if (currentDiff > 3) currentDiff = 3;
-
-            Mobs mobGenerator = new Mobs(currentDiff);
-
-            _leftMobId = mobGenerator.Générer_choix_Mob();
-            _rightMobId = mobGenerator.Générer_choix_Mob();
-
-            _leftEnemyType = GetMobName(currentDiff, _leftMobId);
-            _rightEnemyType = GetMobName(currentDiff, _rightMobId);
-
-            bool leftJammed = rnd.Next(0, 100) < 15;
-            bool rightJammed = rnd.Next(0, 100) < 15;
-
-            string leftText = leftJammed ? "?? JAMMED ??" : _leftEnemyType;
-            string rightText = rightJammed ? "?? JAMMED ??" : _rightEnemyType;
-
-            btnPathLeft.Text = $"PATH A\n\nStrange Corridor.\n\nSenses detect:\n{leftText}";
-            btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{rightText}";
-            
-            if (leftJammed) btnPathLeft.ForeColor = Color.Gray;
-            else btnPathLeft.ForeColor = Color.White;
-
-            if (rightJammed) btnPathRight.ForeColor = Color.Gray;
-            else btnPathRight.ForeColor = Color.White;
-        }
-
-        private string GetMobName(int difficulty, int choix)
-        {
-            switch (difficulty)
-            {
-                case 1:
-                    if (choix == 1) return "Gobelin";
-                    if (choix == 2) return "Squelette";
-                    if (choix == 3) return "Gros Rat";
-                    break;
-                case 2:
-                    if (choix == 1) return "Orc";
-                    if (choix == 2) return "Slime";
-                    if (choix == 3) return "Mage Gobelin";
-                    break;
-                case 3:
-                    if (choix == 1) return "Troll";
-                    if (choix == 2) return "Champion squelette";
-                    if (choix == 3) return "Sirène";
-                    break;
-            }
-            return "Unknown Horror";
-        }
-
-        private void HideBattleUI()
-        {
-            pnlBattleScene.Visible = false;
-            txtGameLog.Visible = false;
-            grpActions.Visible = false;
-        }
-
-        private void ShowBattleUI()
-        {
-            lblTitle.Visible = false;
-            grpClassSelect.Visible = false;
-            pnlEncounterSelect.Visible = false; 
-            pnlWinScreen.Visible = false;
-            pnlBattleScene.Visible = true;
-            txtGameLog.Visible = true;
-            grpActions.Visible = true;
-        }
-
-
-        // LOGIQUE DU JEU
-
-        private void StartGame(PlayerClass selectedClass)
-        {
-            _currentClass = selectedClass;
-            _playerLevel = 1;
-            _battlesWon = 0;
-            _potions = 3;
-
-            switch (_currentClass)
-            {
-                case PlayerClass.Fighter:
-                    _playerMaxHP = 25; _playerMaxMana = 20; break;
-                case PlayerClass.WhiteMage:
-                    _playerMaxHP = 22; _playerMaxMana = 80; break;
-                case PlayerClass.DarkMage:
-                    _playerMaxHP = 18; _playerMaxMana = 100; break;
-                default: _playerMaxHP = 20; _playerMaxMana = 50; break;
-            }
-            _playerHP = _playerMaxHP;
-            _playerMana = _playerMaxMana;
-
-            Log("You chose " + _currentClass.ToString() + "!");
-            ShowEncounterSelection();
-        }
-
-        private void SelectPath(bool isLeft)
-        {
-            string enemyName = isLeft ? _leftEnemyType : _rightEnemyType;
-            _selectedMobId = isLeft ? _leftMobId : _rightMobId;
-            StartBattle(enemyName);
-        }
-
-        private void StartBattle(string enemyType)
-        {
-            _currentState = GameState.Battle;
-            ShowBattleUI();
-
-            _enemyName = enemyType;
-            _enemyIsBlocking = false; 
-            
-            // Je reset les boutons pour pas que ça stall
-            grpActions.Enabled = true;
-
-            int currentDiff = _playerLevel;
-            if (currentDiff > 3) currentDiff = 3;
-            
-            Mobs mobGenerator = new Mobs(currentDiff);
-            
-            _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
-            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId);
-            _enemyHP = _enemyMaxHP;
-
-            UpdateStatsUI();
-            Log($"--- BATTLE {_battlesWon + 1} START ---");
-            Log($"You encounter a {_enemyName}!");
-        }
-
-        private void Log(string message)
-        {
-            txtGameLog.AppendText($"> {message}\n");
-            txtGameLog.ScrollToCaret();
-        }
-
-        private void UpdateStatsUI()
-        {
-            lblPlayerStats.Text = $"YOU (Lvl {_playerLevel})\nHP: {_playerHP}/{_playerMaxHP}\nMP: {_playerMana}/{_playerMaxMana}\nPotions: {_potions}";
-            lblEnemyStats.Text = $"{_enemyName}\nHP: {_enemyHP}/{_enemyMaxHP}";
-        }
-
-        // Tour du Joueur
-        private async void PlayerTurn(string action)
-        {
-            if (_currentState != GameState.Battle) return;
-
-            // JE DIS NON AU SPAM
-            grpActions.Enabled = false; 
-
-            if(action == "Attack") _playerAnimOffset = 200; 
-            
-            await Task.Delay(300); // Délais d'attente
-
-            int damageDealt = 0;
-            bool isBlocking = false;
-
-            switch (action)
-            {
-                case "Attack":
-                    Random rnd = new Random();
-                    if (_currentClass == PlayerClass.Fighter)
-                    {
-                        damageDealt = rnd.Next(3, 7);
-                    }
-                    else
-                    {
-                        damageDealt = rnd.Next(2, 5);
-                    }
-
-                    bool isCrit = rnd.Next(0, 100) < 4;
-                    if (isCrit)
-                    {
-                        damageDealt *= 2;
-                        ShakeScreen(15, 10);
-                        SpawnPopup("CRITICAL!", Color.Yellow, 36);
-                        Log("CRITICAL HIT! You hit a weak spot!");
-                    }
-                    else ShakeScreen(5, 5);
-                    
-                    SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Red, 20);
-
-                    int currentDiff = _playerLevel;
-                    if (currentDiff > 3) currentDiff = 3;
-                    
-                    Mobs mobCheck = new Mobs(currentDiff);
-                    int mobAction = mobCheck.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
-                    
-                    if (mobAction == 2) 
-                    {
-                        damageDealt /= 2;
-                        int healAmount = (int)(_enemyMaxHP * 0.20);
-                        _enemyHP = Math.Min(_enemyHP + healAmount, _enemyMaxHP);
-                        
-                        Log($"The {_enemyName} BLOCKS! Damage halved & Healed {healAmount} HP.");
-                        SpawnPopup("BLOCK", Color.Cyan);
-                        SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Cyan, 10);
-                    }
-
-                    _enemyHP -= damageDealt;
-                    Log($"You attacked for {damageDealt} damage!");
-                    break;
-
-                case "Block":
-                    isBlocking = true;
-                    Log("You brace yourself for impact (Defense UP)!");
-                    _playerMana = Math.Min(_playerMana + 5, _playerMaxMana);
-                    break;
-
-                case "Spell":
-                    if (_playerMana >= 10)
-                    {
-                        _playerMana -= 10;
-                        if (_currentClass == PlayerClass.WhiteMage)
-                        {
-                            int heal = 25 + (_playerLevel * 5);
-                            _playerHP = Math.Min(_playerHP + heal, _playerMaxHP);
-                            Log($"You cast HEAL! Recovered {heal} HP.");
-                            SpawnPopup("HEAL", Color.LightGreen);
-                            SpawnParticles(200, pnlBattleScene.Height/2, Color.Gold, 20);
-                        }
-                        else if (_currentClass == PlayerClass.DarkMage)
-                        {
-                            int spellDmg = 25 + (_playerLevel * 5);
-                            SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Purple, 30);
-                            
-                            if (_enemyIsBlocking) {
-                                spellDmg /= 2;
-                                Log("Enemy magic resistance UP! Damage halved.");
-                            }
-
-                            _enemyHP -= spellDmg;
-                            Log($"You cast FIREBALL! Dealt {spellDmg} damage.");
-                        }
-                        else 
-                        {
-                            int spellDmg = 15;
-                            if (_enemyIsBlocking) spellDmg /= 2;
-                            _enemyHP -= spellDmg;
-                            Log($"You cast PUNCH SPELL! Dealt {spellDmg} damage.");
-                        }
-                    }
-                    else
-                    {
-                        Log("Not enough Mana!");
-                        SpawnPopup("NO MANA", Color.Gray);
-                        // Turn is invalid, re-enable input
-                        grpActions.Enabled = true;
-                        return;
-                    }
-                    break;
-
-                case "Item":
-                    if (_potions > 0)
-                    {
-                        _potions--;
-                        _playerHP = Math.Min(_playerHP + 50, _playerMaxHP);
-                        Log("Used a Potion! +50 HP.");
-                        SpawnPopup("+50 HP", Color.LightGreen);
-                        SpawnParticles(200, pnlBattleScene.Height/2, Color.LightGreen, 20);
-                    }
-                    else
-                    {
-                        Log("No potions left!");
-                        SpawnPopup("EMPTY", Color.Gray);
-                        grpActions.Enabled = true;
-                        return;
-                    }
-                    break;
-            }
-
-            UpdateStatsUI();
-            CheckBattleStatus(isBlocking);
-        }
-
-        private void CheckBattleStatus(bool isBlocking)
-        {
-            if (_enemyHP <= 0)
-            {
-                _enemyHP = 0;
-                UpdateStatsUI();
-                Log($"You defeated the {_enemyName}!");
-                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Gold, 50); 
-                WinBattle();
-            }
-            else
-            {
-                EnemyTurn(isBlocking);
-            }
-        }
-
-        private async void EnemyTurn(bool playerBlocking)
-        {
-            // Attends un ti peu
-            await Task.Delay(1000);
-
-            int currentDiff = _playerLevel;
-            if (currentDiff > 3) currentDiff = 3;
-
-            Mobs mobAI = new Mobs(currentDiff);
-            int actionCode = mobAI.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
-
-            _enemyIsBlocking = false;
-
-            if (actionCode == 1) 
-            {
-                _enemyAnimOffset = -200; 
-                await Task.Delay(200);
-
-                int dmg = _enemyDamage;
-                Random rnd = new Random();
-                bool isCrit = rnd.Next(0, 100) < 4;
-
-                if (isCrit)
-                {
-                    dmg *= 2;
-                    ShakeScreen(20, 15);
-                    SpawnPopup("OUCH!", Color.Red, 36);
-                    Log("CRITICAL HIT! Enemy smashed you!");
-                }
-                else ShakeScreen(5, 5);
-
-                if (playerBlocking) dmg /= 2; 
-
-                SpawnParticles(200, pnlBattleScene.Height/2, Color.Red, 15);
-                _playerHP -= dmg;
-                Log($"The {_enemyName} attacks! You take {dmg} damage.");
-            }
-            else if (actionCode == 2) 
-            {
-                _enemyIsBlocking = true; 
-                int regen = 5 + (currentDiff * 2);
-                _enemyHP = Math.Min(_enemyHP + regen, _enemyMaxHP);
-                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Green, 10);
-                SpawnPopup("REGEN", Color.Green);
-                Log($"The {_enemyName} takes a defensive stance and regenerates {regen} HP!");
-            }
-            else if (actionCode == 3) 
-            {
-                _enemyAnimOffset = -300; 
-                await Task.Delay(200);
-                ShakeScreen(25, 20);
-
-                int dmg = (int)(_enemyDamage * 1.5); 
-                if (playerBlocking) dmg /= 2;
-
-                _playerHP -= dmg;
-                SpawnPopup("SPECIAL!", Color.Purple, 36);
-                Log($"!!! The {_enemyName} uses a SPECIAL ABILITY! You take CRITICAL {dmg} damage!");
-            }
-            
-            UpdateStatsUI();
-
-            if (_playerHP <= 0)
-            {
-                _playerHP = 0;
-                UpdateStatsUI();
-                GameOver();
-            }
-            
-            // Là je réactive les boutons
-            grpActions.Enabled = true;
-        }
-
-        private void WinBattle()
-        {
-            _battlesWon++;
-
-            if (_battlesWon >= 10)
-            {
-                ShowWinScreen();
-                return;
-            }
-            
-            int levelUpThreshold = 3; 
-            
-            // Nouveau popup de victoire
-            SpawnPopup("VICTORY!", Color.Gold, 48);
-
-            if (_battlesWon % levelUpThreshold == 0)
-            {
-                _playerLevel++;
-                _playerMaxMana += 5;
-                _playerHP = _playerMaxHP; 
-                _playerMana = _playerMaxMana;
-                Log($"LEVEL UP! You are now level {_playerLevel}. Stats increased!");
-                // Popup de level up
-                SpawnPopup("LEVEL UP!", Color.Cyan, 60);
-                SpawnParticles(200, pnlBattleScene.Height/2, Color.Cyan, 100);
-            }
-
-            // Petit délais avant la prochaine bataille
-            Task.Delay(2000).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
-                ShowEncounterSelection();
-            }));
-        }
-
-        private void GameOver()
-        {
-            // Game over mon reuf
-            _currentState = GameState.GameOver; // Important pour l'animation
-            HideBattleUI();
-            
-            pnlWinScreen.Visible = true;
-            pnlWinScreen.BringToFront();
-            
-            lblWinMessage.Text = "GAME OVER";
-            lblWinMessage.ForeColor = Color.DarkRed;
-            
-            // On cache le bouton un instant pour l'effet de suspense...
-            btnWinReturn.Text = "TRY AGAIN...";
-            btnWinReturn.Visible = false;
-
-            int w = pnlWinScreen.Width;
-            int h = pnlWinScreen.Height;
-            btnWinReturn.Location = new Point((w - btnWinReturn.Width) / 2, (h / 2) + 180);
-            
-            // Petit délai honteux avant de pouvoir quitter
-            Task.Delay(2000).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
-                btnWinReturn.Visible = true;
-            }));
-            
-            // J'ai enlevé ShowMainMenu() parce que ça faisait un reset trop vite à mon goût (je suis un rageux)
+            btn.MouseEnter += (s,e) => btn.BackColor = Color.FromArgb(40,40,40);
+            btn.MouseLeave += (s,e) => btn.BackColor = Color.FromArgb(20,20,20);
+            return btn;
         }
     }
 }
