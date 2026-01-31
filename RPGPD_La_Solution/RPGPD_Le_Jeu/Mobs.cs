@@ -444,7 +444,7 @@ namespace RPGPD_Le_Jeu
             return resultat;
         }
         // Fin fonction ResultatTourMobsDeBase
-
+        
 
 
 

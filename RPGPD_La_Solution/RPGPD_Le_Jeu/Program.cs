@@ -1283,5 +1283,20 @@ namespace RPGPD_Le_Jeu
             btn.MouseLeave += (s,e) => btn.BackColor = Color.FromArgb(20,20,20);
             return btn;
         }
+
+        //
+        //
+        //
+        // Alerte remaniement du combat par Thomas, Toxique pas touché
+
+        private void BattleParThomas(int difficulty, int playerHP)
+        {
+            
+
+
+        }
+        // Fin du tung tung tung sahur
+
+
     }
 }
