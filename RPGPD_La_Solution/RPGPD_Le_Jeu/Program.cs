@@ -56,7 +56,7 @@ namespace RPGPD_Le_Jeu
 
     public class PopupText
     {
-        public string Text;
+        public required string Text;
         public PointF Position;
         public Color Color;
         public float Scale;
@@ -89,6 +89,8 @@ namespace RPGPD_Le_Jeu
         private int _playerLevel;
         private int _battlesWon;
         private int _potions;
+        private TaskCompletionSource<int>? _inputSignal;
+        private int _lastActionSelected = 0; // 1=Atk, 2=Block, 3=Spell, 4=Item (GNIAAAAA)
 
         // Données de l'Ennemi
         private string _enemyName = "Goblin";
@@ -347,6 +349,14 @@ namespace RPGPD_Le_Jeu
         private async void PlayerTurn(string action)
         {
             if (_currentState != GameState.Battle) return;
+
+            switch (action)
+            {
+                case "Attack": _lastActionSelected = 1; break;
+                case "Block":  _lastActionSelected = 2; break;
+                case "Spell":  _lastActionSelected = 3; break;
+                case "Item":   _lastActionSelected = 4; break;
+            }
 
             ToggleInput(false); // Bloque l'input immédiatement
 
@@ -1332,8 +1342,10 @@ namespace RPGPD_Le_Jeu
                         break;
 
                 }
+        private void BattleParThomas(int difficulty, int playerHP)
+        {
+            
 
-            } while (EnnemiHP > 0);
 
         }
         // Fin du tung tung tung sahur
