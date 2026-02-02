@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Threading.Tasks;
-using System.Linq; 
+using System.Linq;
 
 namespace RPGPD_Le_Jeu
 {
@@ -97,7 +97,7 @@ namespace RPGPD_Le_Jeu
         private int _enemyHP;
         private int _enemyMaxHP;
         private int _enemyDamage;
-        
+
         // Logique Mobs.cs (Tous les IDs)
         private int _leftMobId;
         private int _rightMobId;
@@ -117,7 +117,7 @@ namespace RPGPD_Le_Jeu
 
         // Particules & Popups
         private List<Particle> _particles = new List<Particle>();
-        private List<PopupText> _popups = new List<PopupText>(); 
+        private List<PopupText> _popups = new List<PopupText>();
         private Queue<PopupText> _popupQueue = new Queue<PopupText>();
 
         // Effets d'écran
@@ -133,11 +133,11 @@ namespace RPGPD_Le_Jeu
         private Label lblTitle = null!;
         private Button btnStart = null!;
         private Button btnQuit = null!;
-        private Button btnCredits = null!; 
-        
+        private Button btnCredits = null!;
+
         // Conteneurs
         private GroupBox grpClassSelect = null!;
-        private Panel pnlEncounterSelect = null!; 
+        private Panel pnlEncounterSelect = null!;
         private BufferedPanel pnlBattleScene = null!;    // Le terrain du jeu
         private Panel pnlBottomUI = null!;               // Panel du bas (Log/Action)
         private BufferedPanel pnlWinScreen = null!;      // Overlay Victoire/Défaite
@@ -150,12 +150,12 @@ namespace RPGPD_Le_Jeu
         private Button btnDarkMage = null!;
         private Button btnPathLeft = null!;
         private Button btnPathRight = null!;
-        
+
         private Button btnAttack = null!;
         private Button btnBlock = null!;
         private Button btnSpell = null!;
         private Button btnItem = null!;
-        
+
         private Button btnWinReturn = null!;
         private Button btnCreditsClose = null!;
 
@@ -173,7 +173,7 @@ namespace RPGPD_Le_Jeu
         {
             SetupWindow();
             InitializeComponents();
-            InitializeAnimation(); 
+            InitializeAnimation();
             ShowMainMenu();
         }
 
@@ -182,8 +182,8 @@ namespace RPGPD_Le_Jeu
             this.Text = "RudacoPG - The Adventure";
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
-            this.BackColor = Color.Black; 
-            
+            this.BackColor = Color.Black;
+
             // Configuration pour capturer Échap
             this.KeyPreview = true;
             this.KeyDown += HandleGlobalInput;
@@ -225,7 +225,7 @@ namespace RPGPD_Le_Jeu
             // 5. Redessin des écrans actifs
             if (_currentState == GameState.Battle) pnlBattleScene.Invalidate();
             if (_currentState == GameState.Victory || _currentState == GameState.GameOver) pnlWinScreen.Invalidate();
-            
+
             // 6. Animation du Menu Principal
             if (_currentState == GameState.MainMenu)
             {
@@ -241,7 +241,7 @@ namespace RPGPD_Le_Jeu
                 p.Position.X += p.Velocity.X;
                 p.Position.Y += p.Velocity.Y;
                 p.Life--;
-                p.Size *= 0.95f; 
+                p.Size *= 0.95f;
                 if (p.Life <= 0) _particles.RemoveAt(i);
             }
         }
@@ -253,10 +253,10 @@ namespace RPGPD_Le_Jeu
                 PopupText p = _popups[i];
                 p.Position.Y -= 1.0f; // Float up
                 p.Life--;
-                
+
                 // Calcul Alpha sécurisé
                 float rawAlpha = p.Life / 60.0f;
-                p.Alpha = Math.Min(1.0f, Math.Max(0.0f, rawAlpha)); 
+                p.Alpha = Math.Min(1.0f, Math.Max(0.0f, rawAlpha));
 
                 if (p.Scale < 1.0f) p.Scale += 0.1f;
                 if (p.Life <= 0) _popups.RemoveAt(i);
@@ -327,13 +327,13 @@ namespace RPGPD_Le_Jeu
             ShowBattleUI();
 
             _enemyName = enemyType;
-            _enemyIsBlocking = false; 
+            _enemyIsBlocking = false;
             ToggleInput(true); // Réactiver les boutons
 
             // Configuration difficulté
             int currentDiff = _playerLevel;
             if (currentDiff > 3) currentDiff = 3;
-            
+
             // Génération via Mobs.cs
             Mobs mobGenerator = new Mobs(currentDiff);
             _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
@@ -353,15 +353,15 @@ namespace RPGPD_Le_Jeu
             switch (action)
             {
                 case "Attack": _lastActionSelected = 1; break;
-                case "Block":  _lastActionSelected = 2; break;
-                case "Spell":  _lastActionSelected = 3; break;
-                case "Item":   _lastActionSelected = 4; break;
+                case "Block": _lastActionSelected = 2; break;
+                case "Spell": _lastActionSelected = 3; break;
+                case "Item": _lastActionSelected = 4; break;
             }
 
             ToggleInput(false); // Bloque l'input immédiatement
 
             // Animation visuelle
-            if(action == "Attack") _playerAnimOffset = 200; 
+            if (action == "Attack") _playerAnimOffset = 200;
             await Task.Delay(300); // Délai de l'impact
 
             bool turnComplete = true;
@@ -404,8 +404,8 @@ namespace RPGPD_Le_Jeu
                 Log("CRITICAL HIT! You hit a weak spot!");
             }
             else ShakeScreen(5, 5);
-            
-            SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Red, 20);
+
+            SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height / 2, Color.Red, 20);
 
             // Gestion Blocage Ennemi (Mobs.cs)
             HandleEnemyBlockInteraction(ref damageDealt);
@@ -418,19 +418,19 @@ namespace RPGPD_Le_Jeu
         {
             int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
             Mobs mobCheck = new Mobs(currentDiff);
-            
+
             // Prévision de l'action ennemie pour vérifier le blocage
             int mobAction = mobCheck.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
-            
+
             if (mobAction == 2) // 2 = Block
             {
                 damage /= 2;
                 int healAmount = (int)(_enemyMaxHP * 0.20);
                 _enemyHP = Math.Min(_enemyHP + healAmount, _enemyMaxHP);
-                
+
                 Log($"The {_enemyName} BLOCKS! Damage halved & Healed {healAmount} HP.");
                 SpawnPopup("BLOCK", Color.Cyan);
-                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Cyan, 10);
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height / 2, Color.Cyan, 10);
             }
         }
 
@@ -458,18 +458,18 @@ namespace RPGPD_Le_Jeu
                 _playerHP = Math.Min(_playerHP + heal, _playerMaxHP);
                 Log($"You cast HEAL! Recovered {heal} HP.");
                 SpawnPopup("HEAL", Color.LightGreen);
-                SpawnParticles(200, pnlBattleScene.Height/2, Color.Gold, 20);
+                SpawnParticles(200, pnlBattleScene.Height / 2, Color.Gold, 20);
             }
             else
             {
                 // Spells du Dark Mage et Fighter
                 int spellDmg = (_currentClass == PlayerClass.DarkMage) ? 25 + (_playerLevel * 5) : 15;
                 Color fxColor = (_currentClass == PlayerClass.DarkMage) ? Color.Purple : Color.Orange;
-                
-                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, fxColor, 30);
-                
+
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height / 2, fxColor, 30);
+
                 // Block check pour les spells
-                if (_enemyIsBlocking) 
+                if (_enemyIsBlocking)
                 {
                     spellDmg /= 2;
                     Log("Enemy magic resistance UP! Damage halved.");
@@ -494,7 +494,7 @@ namespace RPGPD_Le_Jeu
             _playerHP = Math.Min(_playerHP + 50, _playerMaxHP);
             Log("Used a Potion! +50 HP.");
             SpawnPopup("+50 HP", Color.LightGreen);
-            SpawnParticles(200, pnlBattleScene.Height/2, Color.LightGreen, 20);
+            SpawnParticles(200, pnlBattleScene.Height / 2, Color.LightGreen, 20);
             return true;
         }
 
@@ -506,7 +506,7 @@ namespace RPGPD_Le_Jeu
                 _enemyHP = 0;
                 UpdateStatsUI();
                 Log($"You defeated the {_enemyName}!");
-                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Gold, 50); 
+                SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height / 2, Color.Gold, 50);
                 WinBattle();
             }
             else
@@ -534,7 +534,7 @@ namespace RPGPD_Le_Jeu
                     _enemyIsBlocking = true;
                     int regen = 5 + (currentDiff * 2);
                     _enemyHP = Math.Min(_enemyHP + regen, _enemyMaxHP);
-                    SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height/2, Color.Green, 10);
+                    SpawnParticles(pnlBattleScene.Width - 300, pnlBattleScene.Height / 2, Color.Green, 10);
                     SpawnPopup("REGEN", Color.Green);
                     Log($"The {_enemyName} regenerates {regen} HP!");
                     break;
@@ -542,7 +542,7 @@ namespace RPGPD_Le_Jeu
                     await EnemyPerformAttack(true);
                     break;
             }
-            
+
             UpdateStatsUI();
 
             if (_playerHP <= 0)
@@ -551,7 +551,7 @@ namespace RPGPD_Le_Jeu
                 UpdateStatsUI();
                 GameOver();
             }
-            
+
             ToggleInput(true); // C'est au joueur de jouer
         }
 
@@ -561,7 +561,7 @@ namespace RPGPD_Le_Jeu
             await Task.Delay(200);
 
             int dmg = isSpecial ? (int)(_enemyDamage * 1.5) : _enemyDamage;
-            
+
             // Critique Ennemi
             if (_rng.Next(0, 100) < 4)
             {
@@ -573,9 +573,9 @@ namespace RPGPD_Le_Jeu
             else ShakeScreen(isSpecial ? 25 : 5, isSpecial ? 20 : 5);
 
             // Block Joueur (Simulé ici en faisant une division si le joueur a cliqué Block)
-            
+
             _playerHP -= dmg;
-            SpawnParticles(200, pnlBattleScene.Height/2, Color.Red, 15);
+            SpawnParticles(200, pnlBattleScene.Height / 2, Color.Red, 15);
             Log(isSpecial ? "SPECIAL ABILITY!" : "Enemy attacks!");
         }
 
@@ -589,7 +589,7 @@ namespace RPGPD_Le_Jeu
                 ShowWinScreen();
                 return;
             }
-            
+
             SpawnPopup("VICTORY!", Color.Gold, 48);
 
             // Level Up Check
@@ -597,15 +597,16 @@ namespace RPGPD_Le_Jeu
             {
                 _playerLevel++;
                 _playerMaxMana += 5;
-                _playerHP = _playerMaxHP; 
+                _playerHP = _playerMaxHP;
                 _playerMana = _playerMaxMana;
                 Log($"LEVEL UP! You are now level {_playerLevel}.");
                 SpawnPopup("LEVEL UP!", Color.Cyan, 60);
-                SpawnParticles(200, pnlBattleScene.Height/2, Color.Cyan, 100);
+                SpawnParticles(200, pnlBattleScene.Height / 2, Color.Cyan, 100);
             }
 
             // Délai avant prochain choix
-            Task.Delay(2000).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
+            Task.Delay(2000).ContinueWith(t => this.Invoke((MethodInvoker)delegate
+            {
                 ShowEncounterSelection();
             }));
         }
@@ -613,19 +614,20 @@ namespace RPGPD_Le_Jeu
         private void GameOver()
         {
             _currentState = GameState.GameOver;
-            
+
             // Configuration de l'overlay Game Over
             pnlWinScreen.Visible = true;
             pnlWinScreen.BringToFront();
-            
+
             lblWinMessage.Text = "WOMP WOMP";
             lblWinMessage.ForeColor = Color.DarkRed;
-            
+
             // Délai pour le bouton
             btnWinReturn.Visible = false;
             btnWinReturn.Text = "TRY AGAIN";
-            
-            Task.Delay(1500).ContinueWith(t => this.Invoke((MethodInvoker)delegate {
+
+            Task.Delay(1500).ContinueWith(t => this.Invoke((MethodInvoker)delegate
+            {
                 btnWinReturn.Visible = true;
             }));
         }
@@ -665,7 +667,7 @@ namespace RPGPD_Le_Jeu
             HideBattleUI();
             pnlEncounterSelect.Visible = true;
             pnlWinScreen.Visible = false;
-            
+
             GenerateEncounterChoices();
         }
 
@@ -688,7 +690,7 @@ namespace RPGPD_Le_Jeu
 
             btnPathLeft.Text = $"PATH A\n\nStrange Corridor.\n\nSenses detect:\n{leftText}";
             btnPathRight.Text = $"PATH B\n\nDark Corridor...\n\nSenses detect:\n{rightText}";
-            
+
             btnPathLeft.ForeColor = leftJammed ? Color.Gray : Color.White;
             btnPathRight.ForeColor = rightJammed ? Color.Gray : Color.White;
         }
@@ -707,7 +709,7 @@ namespace RPGPD_Le_Jeu
             pnlEncounterSelect.Visible = false;
             pnlWinScreen.Visible = true;
             pnlWinScreen.BringToFront();
-            
+
             lblWinMessage.Text = "VICTORY!";
             lblWinMessage.ForeColor = Color.Gold;
             btnWinReturn.Text = "RETURN TO MAIN MENU";
@@ -717,18 +719,18 @@ namespace RPGPD_Le_Jeu
         private void ShowCredits() { pnlCreditsOverlay.Visible = true; pnlCreditsOverlay.BringToFront(); }
         private void HideCredits() { pnlCreditsOverlay.Visible = false; }
         private void HideBattleUI() { pnlBattleScene.Visible = false; pnlBottomUI.Visible = false; }
-        
+
         // Gestion de l'overlapping
-        private void ShowBattleUI() 
-        { 
+        private void ShowBattleUI()
+        {
             lblTitle.Visible = false;
             grpClassSelect.Visible = false;
             pnlEncounterSelect.Visible = false;
             pnlWinScreen.Visible = false;
             pnlCreditsOverlay.Visible = false;
 
-            pnlBattleScene.Visible = true; 
-            pnlBottomUI.Visible = true; 
+            pnlBattleScene.Visible = true;
+            pnlBottomUI.Visible = true;
         }
 
         private void ResetGameData()
@@ -752,11 +754,11 @@ namespace RPGPD_Le_Jeu
 
             DrawBackground(g, w, h);
             ApplyShake(g);
-            
+
             // Dessins des entités
             DrawPlayer(g, w, h);
             DrawMob(g, w, h, _enemyName);
-            
+
             // Dessins des effets
             DrawParticles(g);
             DrawPopups(g);
@@ -772,7 +774,7 @@ namespace RPGPD_Le_Jeu
             if (_currentState == GameState.Victory)
             {
                 // Particules dorées
-                for(int i=0; i<100; i++)
+                for (int i = 0; i < 100; i++)
                 {
                     int x = _rng.Next(w);
                     int y = (int)((_rng.Next(h) + _globalTime * 5) % h);
@@ -782,7 +784,7 @@ namespace RPGPD_Le_Jeu
             else if (_currentState == GameState.GameOver)
             {
                 // Pluie de la terreur terorisante
-                for(int i=0; i<100; i++)
+                for (int i = 0; i < 100; i++)
                 {
                     int x = _rng.Next(w);
                     int y = (int)((_rng.Next(h) + _globalTime * 15) % h);
@@ -794,19 +796,19 @@ namespace RPGPD_Le_Jeu
         // Helpers de dessin
         private void DrawBackground(Graphics g, int w, int h)
         {
-            using (LinearGradientBrush brush = new LinearGradientBrush(new Point(0,0), new Point(w, h), Color.FromArgb(20,0,20), Color.Black))
+            using (LinearGradientBrush brush = new LinearGradientBrush(new Point(0, 0), new Point(w, h), Color.FromArgb(20, 0, 20), Color.Black))
             {
                 g.FillRectangle(brush, 0, 0, w, h);
             }
             // Étoiles
-            Random r = new Random(1234); 
-            for(int i=0; i<50; i++)
+            Random r = new Random(1234);
+            for (int i = 0; i < 50; i++)
             {
                 int x = r.Next(w);
                 int y = r.Next(h);
                 int size = r.Next(1, 4);
                 float alpha = (float)(Math.Sin(_globalTime * 0.1f + i) + 1) / 2 * 255;
-                using(SolidBrush b = new SolidBrush(Color.FromArgb((int)alpha, 255, 255, 255)))
+                using (SolidBrush b = new SolidBrush(Color.FromArgb((int)alpha, 255, 255, 255)))
                 {
                     g.FillEllipse(b, x, y, size, size);
                 }
@@ -815,7 +817,7 @@ namespace RPGPD_Le_Jeu
 
         private void ApplyShake(Graphics g)
         {
-            if(_shakeDuration > 0)
+            if (_shakeDuration > 0)
             {
                 int shakeX = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
                 int shakeY = _rng.Next(-_shakeMagnitude, _shakeMagnitude);
@@ -827,34 +829,34 @@ namespace RPGPD_Le_Jeu
         {
             float breathe = (float)Math.Sin(_globalTime * 0.2f) * 5;
             float x = 200 + _playerAnimOffset;
-            float y = h/2 + breathe;
+            float y = h / 2 + breathe;
 
-            using(SolidBrush b = new SolidBrush(Color.SteelBlue))
+            using (SolidBrush b = new SolidBrush(Color.SteelBlue))
                 g.FillEllipse(b, x, y, 80, 80);
-            
-            using(SolidBrush b = new SolidBrush(Color.PeachPuff))
-                g.FillEllipse(b, x+15, y-30, 50, 50);
+
+            using (SolidBrush b = new SolidBrush(Color.PeachPuff))
+                g.FillEllipse(b, x + 15, y - 30, 50, 50);
 
             // Accessoires
             if (_currentClass == PlayerClass.Fighter)
             {
-                using(Pen p = new Pen(Color.Silver, 5)) g.DrawLine(p, x+60, y+40, x+100, y+10);
+                using (Pen p = new Pen(Color.Silver, 5)) g.DrawLine(p, x + 60, y + 40, x + 100, y + 10);
             }
             else if (_currentClass == PlayerClass.DarkMage)
             {
-                PointF[] hat = { new PointF(x+10, y-30), new PointF(x+70, y-30), new PointF(x+40, y-80) };
+                PointF[] hat = { new PointF(x + 10, y - 30), new PointF(x + 70, y - 30), new PointF(x + 40, y - 80) };
                 g.FillPolygon(Brushes.Purple, hat);
             }
             else // Mage Blanc
             {
-                using(Pen p = new Pen(Color.Gold, 3)) g.DrawEllipse(p, x+15, y-50, 50, 10);
+                using (Pen p = new Pen(Color.Gold, 3)) g.DrawEllipse(p, x + 15, y - 50, 50, 10);
             }
 
             // Clignement des yeux
             if ((int)(_globalTime * 10) % 50 > 2)
             {
-                g.FillEllipse(Brushes.Black, x+30, y-15, 5, 5);
-                g.FillEllipse(Brushes.Black, x+50, y-15, 5, 5);
+                g.FillEllipse(Brushes.Black, x + 30, y - 15, 5, 5);
+                g.FillEllipse(Brushes.Black, x + 50, y - 15, 5, 5);
             }
         }
 
@@ -862,54 +864,54 @@ namespace RPGPD_Le_Jeu
         {
             float breathe = (float)Math.Sin(_globalTime * 0.15f + 2) * 8;
             float x = w - 300 + _enemyAnimOffset;
-            float y = h/2 - 50 + breathe;
+            float y = h / 2 - 50 + breathe;
 
             if (name.Contains("Goblin") || name.Contains("Gobelin"))
             {
                 g.FillEllipse(Brushes.ForestGreen, x, y, 100, 100);
-                PointF[] lEar = { new PointF(x, y+30), new PointF(x-30, y+10), new PointF(x+10, y+40) };
-                PointF[] rEar = { new PointF(x+100, y+30), new PointF(x+130, y+10), new PointF(x+90, y+40) };
+                PointF[] lEar = { new PointF(x, y + 30), new PointF(x - 30, y + 10), new PointF(x + 10, y + 40) };
+                PointF[] rEar = { new PointF(x + 100, y + 30), new PointF(x + 130, y + 10), new PointF(x + 90, y + 40) };
                 g.FillPolygon(Brushes.ForestGreen, lEar);
                 g.FillPolygon(Brushes.ForestGreen, rEar);
-                g.FillEllipse(Brushes.Red, x+25, y+30, 15, 15);
-                g.FillEllipse(Brushes.Red, x+60, y+30, 15, 15);
+                g.FillEllipse(Brushes.Red, x + 25, y + 30, 15, 15);
+                g.FillEllipse(Brushes.Red, x + 60, y + 30, 15, 15);
             }
             else if (name.Contains("Boss") || name.Contains("Troll") || name.Contains("Orc"))
             {
                 g.FillRectangle(Brushes.DarkRed, x, y, 150, 150);
-                g.FillPolygon(Brushes.Gray, new PointF[] { new PointF(x+20, y), new PointF(x+30, y-40), new PointF(x+40, y) });
-                g.FillPolygon(Brushes.Gray, new PointF[] { new PointF(x+110, y), new PointF(x+120, y-40), new PointF(x+130, y) });
-                g.FillRectangle(Brushes.Black, x+30, y+50, 30, 20);
-                g.FillRectangle(Brushes.Black, x+90, y+50, 30, 20);
-                g.DrawArc(Pens.Black, x+40, y+100, 70, 20, 180, 180); 
+                g.FillPolygon(Brushes.Gray, new PointF[] { new PointF(x + 20, y), new PointF(x + 30, y - 40), new PointF(x + 40, y) });
+                g.FillPolygon(Brushes.Gray, new PointF[] { new PointF(x + 110, y), new PointF(x + 120, y - 40), new PointF(x + 130, y) });
+                g.FillRectangle(Brushes.Black, x + 30, y + 50, 30, 20);
+                g.FillRectangle(Brushes.Black, x + 90, y + 50, 30, 20);
+                g.DrawArc(Pens.Black, x + 40, y + 100, 70, 20, 180, 180);
             }
             else if (name.Contains("Squelette") || name.Contains("Skeleton"))
             {
-                g.FillEllipse(Brushes.WhiteSmoke, x+30, y, 60, 60); 
-                g.FillRectangle(Brushes.WhiteSmoke, x+55, y+60, 10, 60); 
-                g.FillRectangle(Brushes.WhiteSmoke, x+30, y+70, 60, 10); 
-                g.FillEllipse(Brushes.Black, x+45, y+20, 10, 10);
-                g.FillEllipse(Brushes.Black, x+65, y+20, 10, 10);
+                g.FillEllipse(Brushes.WhiteSmoke, x + 30, y, 60, 60);
+                g.FillRectangle(Brushes.WhiteSmoke, x + 55, y + 60, 10, 60);
+                g.FillRectangle(Brushes.WhiteSmoke, x + 30, y + 70, 60, 10);
+                g.FillEllipse(Brushes.Black, x + 45, y + 20, 10, 10);
+                g.FillEllipse(Brushes.Black, x + 65, y + 20, 10, 10);
             }
             else if (name.Contains("Slime") || name.Contains("Rat"))
             {
-                g.FillPie(Brushes.DodgerBlue, x, y+20, 100, 80, 0, -180);
-                g.FillRectangle(Brushes.DodgerBlue, x, y+60, 100, 40);
-                g.FillEllipse(Brushes.White, x+30, y+50, 15, 15);
-                g.FillEllipse(Brushes.White, x+60, y+50, 15, 15);
-                g.FillEllipse(Brushes.Black, x+35, y+55, 5, 5);
-                g.FillEllipse(Brushes.Black, x+65, y+55, 5, 5);
+                g.FillPie(Brushes.DodgerBlue, x, y + 20, 100, 80, 0, -180);
+                g.FillRectangle(Brushes.DodgerBlue, x, y + 60, 100, 40);
+                g.FillEllipse(Brushes.White, x + 30, y + 50, 15, 15);
+                g.FillEllipse(Brushes.White, x + 60, y + 50, 15, 15);
+                g.FillEllipse(Brushes.Black, x + 35, y + 55, 5, 5);
+                g.FillEllipse(Brushes.Black, x + 65, y + 55, 5, 5);
             }
-            else 
+            else
             {
                 g.FillEllipse(Brushes.DarkGray, x, y, 100, 100);
-                g.DrawString("?", new Font("Arial", 50), Brushes.Red, x+20, y+20);
+                g.DrawString("?", new Font("Arial", 50), Brushes.Red, x + 20, y + 20);
             }
-            
-            if(_enemyIsBlocking)
+
+            if (_enemyIsBlocking)
             {
-                using(Pen p = new Pen(Color.Cyan, 5))
-                    g.DrawEllipse(p, x-10, y-10, 150, 150);
+                using (Pen p = new Pen(Color.Cyan, 5))
+                    g.DrawEllipse(p, x - 10, y - 10, 150, 150);
             }
         }
 
@@ -918,7 +920,7 @@ namespace RPGPD_Le_Jeu
             foreach (var p in _particles)
             {
                 int alpha = Math.Min(255, Math.Max(0, (int)(p.Life * 8.5)));
-                using(SolidBrush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
+                using (SolidBrush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
                 {
                     g.FillEllipse(b, p.Position.X, p.Position.Y, p.Size, p.Size);
                 }
@@ -927,23 +929,23 @@ namespace RPGPD_Le_Jeu
 
         private void DrawPopups(Graphics g)
         {
-            foreach(var p in _popups)
+            foreach (var p in _popups)
             {
                 int alpha = Math.Min(255, Math.Max(0, (int)(p.Alpha * 255)));
-                using(Font font = new Font("Impact", 60 * p.Scale, FontStyle.Bold))
-                using(Brush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
+                using (Font font = new Font("Impact", 60 * p.Scale, FontStyle.Bold))
+                using (Brush b = new SolidBrush(Color.FromArgb(alpha, p.Color)))
                 {
                     SizeF size = g.MeasureString(p.Text, font);
-                    g.DrawString(p.Text, font, b, p.Position.X - size.Width/2, p.Position.Y - size.Height/2);
+                    g.DrawString(p.Text, font, b, p.Position.X - size.Width / 2, p.Position.Y - size.Height / 2);
                 }
             }
         }
 
         private void DrawFlash(Graphics g, int w, int h)
         {
-            if(_flashDuration > 0)
+            if (_flashDuration > 0)
             {
-                using(SolidBrush b = new SolidBrush(Color.FromArgb(100, 255, 255, 255)))
+                using (SolidBrush b = new SolidBrush(Color.FromArgb(100, 255, 255, 255)))
                 {
                     g.FillRectangle(b, 0, 0, w, h);
                 }
@@ -967,9 +969,10 @@ namespace RPGPD_Le_Jeu
 
         private void SpawnParticles(float x, float y, Color c, int count)
         {
-            for(int i=0; i<count; i++)
+            for (int i = 0; i < count; i++)
             {
-                _particles.Add(new Particle() {
+                _particles.Add(new Particle()
+                {
                     Position = new PointF(x, y),
                     Velocity = new PointF(_rng.Next(-10, 11), _rng.Next(-10, 11)),
                     Color = c,
@@ -987,7 +990,7 @@ namespace RPGPD_Le_Jeu
                 Position = new PointF(pnlBattleScene.Width / 2, pnlBattleScene.Height / 2),
                 Color = c,
                 Scale = 0.1f,
-                Life = 80, 
+                Life = 80,
                 Alpha = 1.0f
             });
         }
@@ -1043,10 +1046,10 @@ namespace RPGPD_Le_Jeu
             // 1. Titre
             lblTitle = new Label();
             lblTitle.Text = "RudacoPG";
-            lblTitle.Font = new Font("Impact", 72, FontStyle.Italic); 
-            lblTitle.AutoSize = false; 
-            lblTitle.Size = new Size(w, 200); 
-            lblTitle.TextAlign = ContentAlignment.MiddleCenter; 
+            lblTitle.Font = new Font("Impact", 72, FontStyle.Italic);
+            lblTitle.AutoSize = false;
+            lblTitle.Size = new Size(w, 200);
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
             lblTitle.ForeColor = Color.Cyan;
             lblTitle.BackColor = Color.Transparent;
             lblTitle.Location = new Point(0, cy - 250);
@@ -1056,7 +1059,7 @@ namespace RPGPD_Le_Jeu
             btnStart = CreateMenuButton("PLAY", cx - 150, cy, (s, e) => ShowClassSelection());
             btnCredits = CreateMenuButton("CREDITS", cx - 150, cy + 80, (s, e) => ShowCredits());
             btnQuit = CreateMenuButton("QUIT", cx - 150, cy + 160, (s, e) => Application.Exit());
-            
+
             // 3. Crédits
             SetupCreditsOverlay(cx, cy);
 
@@ -1078,9 +1081,9 @@ namespace RPGPD_Le_Jeu
             pnlCreditsOverlay = new BufferedPanel();
             pnlCreditsOverlay.Size = new Size(600, 400);
             pnlCreditsOverlay.Location = new Point(cx - 300, cy - 200);
-            pnlCreditsOverlay.BackColor = Color.FromArgb(240, 20, 20, 20); 
+            pnlCreditsOverlay.BackColor = Color.FromArgb(240, 20, 20, 20);
             pnlCreditsOverlay.Visible = false;
-            pnlCreditsOverlay.Paint += (s, e) => e.Graphics.DrawRectangle(Pens.Cyan, 0,0, 599, 399);
+            pnlCreditsOverlay.Paint += (s, e) => e.Graphics.DrawRectangle(Pens.Cyan, 0, 0, 599, 399);
             this.Controls.Add(pnlCreditsOverlay);
 
             lblCreditsText = new Label();
@@ -1107,10 +1110,10 @@ namespace RPGPD_Le_Jeu
             grpClassSelect.Location = new Point(cx - 300, cy - 200);
             grpClassSelect.Visible = false;
             grpClassSelect.BackColor = Color.FromArgb(20, 20, 20);
-            
+
             btnFighter = CreateClassButton("FIGHTER\n(High HP/Atk)", 80, Color.DarkRed);
             btnFighter.Click += (s, e) => StartGame(PlayerClass.Fighter);
-            
+
             btnWhiteMage = CreateClassButton("WHITE MAGE\n(Heal/Def)", 160, Color.LightBlue);
             btnWhiteMage.Click += (s, e) => StartGame(PlayerClass.WhiteMage);
 
@@ -1126,16 +1129,16 @@ namespace RPGPD_Le_Jeu
         private void SetupEncounterSelect(int w, int h)
         {
             pnlEncounterSelect = new Panel();
-            pnlEncounterSelect.Dock = DockStyle.Fill; 
+            pnlEncounterSelect.Dock = DockStyle.Fill;
             pnlEncounterSelect.BackColor = Color.Black;
             pnlEncounterSelect.Visible = false;
             this.Controls.Add(pnlEncounterSelect);
 
-            btnPathLeft = CreatePathButton(0, 0, w/2, h);
+            btnPathLeft = CreatePathButton(0, 0, w / 2, h);
             btnPathLeft.Click += (s, e) => SelectPath(true);
             pnlEncounterSelect.Controls.Add(btnPathLeft);
 
-            btnPathRight = CreatePathButton(w/2, 0, w/2, h);
+            btnPathRight = CreatePathButton(w / 2, 0, w / 2, h);
             btnPathRight.Click += (s, e) => SelectPath(false);
             pnlEncounterSelect.Controls.Add(btnPathRight);
         }
@@ -1152,7 +1155,7 @@ namespace RPGPD_Le_Jeu
             // Système de log des événements (Console)
             txtGameLog = new RichTextBox();
             txtGameLog.Location = new Point(20, 20);
-            txtGameLog.Size = new Size(w/2 - 40, 210);
+            txtGameLog.Size = new Size(w / 2 - 40, 210);
             txtGameLog.ReadOnly = true;
             txtGameLog.BackColor = Color.FromArgb(10, 10, 10);
             txtGameLog.ForeColor = Color.LightGray;
@@ -1163,8 +1166,8 @@ namespace RPGPD_Le_Jeu
             // Actions à l'intérieur du pannel
             grpActions = new GroupBox();
             grpActions.Text = "";
-            grpActions.Location = new Point(w/2, 10);
-            grpActions.Size = new Size(w/2 - 20, 230);
+            grpActions.Location = new Point(w / 2, 10);
+            grpActions.Size = new Size(w / 2 - 20, 230);
             grpActions.BackColor = Color.Transparent;
             pnlBottomUI.Controls.Add(grpActions);
 
@@ -1186,10 +1189,10 @@ namespace RPGPD_Le_Jeu
 
             // Créer la scène de bataille
             pnlBattleScene = new BufferedPanel();
-            pnlBattleScene.Dock = DockStyle.Fill; 
+            pnlBattleScene.Dock = DockStyle.Fill;
             pnlBattleScene.BackColor = Color.Black;
             pnlBattleScene.Visible = false;
-            pnlBattleScene.Paint += BattleScene_Paint; 
+            pnlBattleScene.Paint += BattleScene_Paint;
             this.Controls.Add(pnlBattleScene); // Ajoute le dernier pour remplir l'espace du dessous
 
             lblEnemyStats = new Label { Text = "", AutoSize = true, Location = new Point(w - 300, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Red, BackColor = Color.Transparent };
@@ -1238,10 +1241,10 @@ namespace RPGPD_Le_Jeu
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderColor = Color.Cyan;
             btn.FlatAppearance.BorderSize = 2;
-            
-            btn.MouseEnter += (s, e) => { btn.BackColor = Color.FromArgb(60,60,60); btn.Size = new Size(320, 80); btn.Location = new Point(x-10, y-5); };
-            btn.MouseLeave += (s, e) => { btn.BackColor = Color.FromArgb(40,40,40); btn.Size = new Size(300, 70); btn.Location = new Point(x, y); };
-            
+
+            btn.MouseEnter += (s, e) => { btn.BackColor = Color.FromArgb(60, 60, 60); btn.Size = new Size(320, 80); btn.Location = new Point(x - 10, y - 5); };
+            btn.MouseLeave += (s, e) => { btn.BackColor = Color.FromArgb(40, 40, 40); btn.Size = new Size(300, 70); btn.Location = new Point(x, y); };
+
             btn.Click += onClick;
             this.Controls.Add(btn); // On ajoute au parent
             return btn;
@@ -1272,7 +1275,7 @@ namespace RPGPD_Le_Jeu
             btn.ForeColor = Color.White;
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderColor = Color.White;
-            
+
             btn.MouseEnter += (s, e) => btn.FlatAppearance.BorderColor = Color.Yellow;
             btn.MouseLeave += (s, e) => btn.FlatAppearance.BorderColor = Color.White;
             return btn;
@@ -1288,9 +1291,9 @@ namespace RPGPD_Le_Jeu
             btn.BackColor = Color.FromArgb(20, 20, 20);
             btn.ForeColor = Color.White;
             btn.Font = new Font("Courier New", 24, FontStyle.Bold);
-            
-            btn.MouseEnter += (s,e) => btn.BackColor = Color.FromArgb(40,40,40);
-            btn.MouseLeave += (s,e) => btn.BackColor = Color.FromArgb(20,20,20);
+
+            btn.MouseEnter += (s, e) => btn.BackColor = Color.FromArgb(40, 40, 40);
+            btn.MouseLeave += (s, e) => btn.BackColor = Color.FromArgb(20, 20, 20);
             return btn;
         }
 
@@ -1299,7 +1302,7 @@ namespace RPGPD_Le_Jeu
         //
         // Alerte remaniement du combat par Thomas, Toxique pas touché
 
-        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi)
+        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potions qui full life
         {
             Mobs mob = new Mobs(difficulty);
             Player player = new Player(playerClass);
@@ -1312,14 +1315,14 @@ namespace RPGPD_Le_Jeu
             int intDivinDuJoueur = 0;
             int intDivinDuMobs = 0;
             int EnnemiAction = 0;
-            
+
 
             do
             {
                 // Tour du joueur
                 playerAction = rand.Next(1, 5); // 1-Attack, 2-Block, 3-Spell, 4-Item
                 // Fin tour du joueur
-                
+
                 switch (playerAction)
                 {
                     case 1: // Attack
@@ -1332,24 +1335,59 @@ namespace RPGPD_Le_Jeu
                             // Animation de bloque du joueur et de l'attaque du joueur
                             EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
                         }
-                        
+                        else
+                        {
+                            EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                            if (EnnemiHP <= 0)
+                            { break; }
+                            if (EnnemiAction == 1)
+                            {
+                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi);
+                                playerHP = playerHP - intDivinDuMobs;
+                                if (playerHP <= 0)
+                                { Environment.Exit(0); }
+                            } // Faire else la compétence spécial
+                        }
                         break;
                     case 2: // Block
+                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        intDivinDuJoueur = player.Generer_Defense_Player(difficulty, playerClass);
+                        if (EnnemiAction == 1)
+                        {
+                            intDivinDuMobs = mob.Générer_Attaque(difficulty, playerClass);
+                            intDivinDuMobs = intDivinDuMobs / 2;
+                            playerHP = playerHP + intDivinDuJoueur - intDivinDuMobs;
+                            if (playerHP <= 0)
+                            { Environment.Exit(0); }
+                        }
                         break;
                     case 3: // Spell
                         break;
                     case 4: // Item
+                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        switch(EnnemiAction)
+                        {
+                            case 1:
+                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi);
+                                playerHP = playerHP - intDivinDuMobs;
+                                if (playerHP <= 0)
+                                { Environment.Exit(0); }
+                                playerHP = playerHP + 15; // un full life
+                                playerPotion = 0;
+                                break;
+                            case 2:
+                                intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi);
+                                playerHP = playerHP + 15; // un full life
+                                playerPotion = 0;
+                                EnnemiHP = EnnemiHP + intDivinDuMobs;
+                                break;
+                            case 3:
+                                break;
+                        }
                         break;
-
                 }
-        private void BattleParThomas(int difficulty, int playerHP)
-        {
-            
+            } while (EnnemiHP > 0);
 
-
-        }
-        // Fin du tung tung tung sahur
-
-
+        }// Fin du tung tung tung sahur
     }
 }
