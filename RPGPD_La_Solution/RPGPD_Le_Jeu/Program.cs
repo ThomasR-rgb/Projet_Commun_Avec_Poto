@@ -56,7 +56,7 @@ namespace RPGPD_Le_Jeu
 
     public class PopupText
     {
-        public string Text;
+        public required string Text;
         public PointF Position;
         public Color Color;
         public float Scale;
@@ -89,6 +89,8 @@ namespace RPGPD_Le_Jeu
         private int _playerLevel;
         private int _battlesWon;
         private int _potions;
+        private TaskCompletionSource<int>? _inputSignal;
+        private int _lastActionSelected = 0; // 1=Atk, 2=Block, 3=Spell, 4=Item (GNIAAAAA)
 
         // Données de l'Ennemi
         private string _enemyName = "Goblin";
@@ -347,6 +349,14 @@ namespace RPGPD_Le_Jeu
         private async void PlayerTurn(string action)
         {
             if (_currentState != GameState.Battle) return;
+
+            switch (action)
+            {
+                case "Attack": _lastActionSelected = 1; break;
+                case "Block":  _lastActionSelected = 2; break;
+                case "Spell":  _lastActionSelected = 3; break;
+                case "Item":   _lastActionSelected = 4; break;
+            }
 
             ToggleInput(false); // Bloque l'input immédiatement
 
@@ -1289,42 +1299,10 @@ namespace RPGPD_Le_Jeu
         //
         // Alerte remaniement du combat par Thomas, Toxique pas touché
 
-        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi)
+        private void BattleParThomas(int difficulty, int playerHP)
         {
-            Mobs mobCheck = new Mobs(difficulty);
-            Player player = new Player(playerClass);
-            int EnnemiHP = mobCheck.Générer_HP(difficulty, choixDeLennemi);
-            int playerHP = 0;
-            int playerMP = 0;
-            int playerPotion = 0;
-            int playerAction = 0;
-            Random rand = new Random();
-            int DivinDuJoueur = 0;
-            int DivinDuMobs = 0;
-            int EnnemiAction = 0;
+            
 
-
-            do
-            {
-                // Tour du joueur
-                playerAction = rand.Next(1, 5); // 1-Attack, 2-Block, 3-Spell, 4-Item
-                // Fin tour du joueur
-                
-                switch (playerAction)
-                {
-                    case 1: // Attack
-                        EnnemiAction = mobCheck.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
-                        break;
-                    case 2: // Block
-                        break;
-                    case 3: // Spell
-                        break;
-                    case 4: // Item
-                        break;
-
-                }
-
-            } while (EnnemiHP > 0);
 
         }
         // Fin du tung tung tung sahur
