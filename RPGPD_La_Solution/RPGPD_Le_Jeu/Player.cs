@@ -229,15 +229,75 @@ namespace RPGPD_Le_Jeu
          *            lvl2 2MP Reflect -[2-3] DP physique reçue jusqu'à la fin du combat  2MP Ice Beam 9-14DP
          *            lvl3 7MP Kill Tue le truc en face
          */
-        public int spellJoueur(int playerclass)
+
+        /* Code des exceptions lié au spell
+         * 101 = magic sword
+         * 102 = divine grace
+         * 103 = Vampire touch
+         * 104 = Reflect
+         * 105 = Kill
+         */
+        public int spellJoueur(int playerclass, int ChoixDuSpell)
         {
+            Random random = new Random();
             int intdivinduspell = 0;
             switch(playerclass)
             {
-                
+                case 1: // Fighter
+                    switch(ChoixDuSpell)
+                    {
+                        case 1: // Magic sword
+                            intdivinduspell = 101;
+                            return intdivinduspell;
+                        case 2: // Cure
+                            intdivinduspell = random.Next(10, 16);
+                            return intdivinduspell;
+                        case 3:
+                            return intdivinduspell;
+                        case 4:
+                            return intdivinduspell;
+                    }
+                    break;
+                case 2: // White mage
+                    switch(ChoixDuSpell)
+                    {
+                        case 1: // Fire bolt
+                            intdivinduspell = random.Next(5, 11);
+                            return intdivinduspell;
+                        case 2: // Heal
+                            intdivinduspell = random.Next(8, 14);
+                            return intdivinduspell;
+                        case 3: // Divine Grace
+                            intdivinduspell = 102;
+                            return intdivinduspell;
+                        case 4: // Smite
+                            intdivinduspell = random.Next(10, 51);
+                            return intdivinduspell;
+                    }
+                    break;
+                case 3: // Dark mage
+                    switch (ChoixDuSpell)
+                    {
+                        case 1: // Vampire Touch
+                            intdivinduspell = 103;
+                            return intdivinduspell;
+                        case 2: // Reflect
+                            intdivinduspell = 104;
+                            return intdivinduspell;
+                        case 3: // Ice Beam
+                            intdivinduspell = random.Next(9, 15);
+                            return intdivinduspell;
+                        case 4: // Kill
+                            intdivinduspell = 105;
+                            return intdivinduspell;
+                    }
+                    break;
             }
             return intdivinduspell;
-        }
+        } // Fin fonction intdivinduspell
+
+
+
 
     } // pas sortir de ça
 }
