@@ -1289,10 +1289,42 @@ namespace RPGPD_Le_Jeu
         //
         // Alerte remaniement du combat par Thomas, Toxique pas touché
 
-        private void BattleParThomas(int difficulty, int playerHP)
+        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi)
         {
-            
+            Mobs mobCheck = new Mobs(difficulty);
+            Player player = new Player(playerClass);
+            int EnnemiHP = mobCheck.Générer_HP(difficulty, choixDeLennemi);
+            int playerHP = 0;
+            int playerMP = 0;
+            int playerPotion = 0;
+            int playerAction = 0;
+            Random rand = new Random();
+            int DivinDuJoueur = 0;
+            int DivinDuMobs = 0;
+            int EnnemiAction = 0;
 
+
+            do
+            {
+                // Tour du joueur
+                playerAction = rand.Next(1, 5); // 1-Attack, 2-Block, 3-Spell, 4-Item
+                // Fin tour du joueur
+                
+                switch (playerAction)
+                {
+                    case 1: // Attack
+                        EnnemiAction = mobCheck.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        break;
+                    case 2: // Block
+                        break;
+                    case 3: // Spell
+                        break;
+                    case 4: // Item
+                        break;
+
+                }
+
+            } while (EnnemiHP > 0);
 
         }
         // Fin du tung tung tung sahur
