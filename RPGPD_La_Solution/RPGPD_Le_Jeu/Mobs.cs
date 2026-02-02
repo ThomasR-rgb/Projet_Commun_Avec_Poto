@@ -40,6 +40,12 @@ namespace RPGPD_Le_Jeu
                         case 3: // Gros Rat
                             HP = random.Next(3, 7);
                             break;
+                        case 4: // Swarm gobelin (l'équivalent de 3 gobelins en même temps)
+                            HP = random.Next(23, 31);
+                            return HP;
+                        case 5: // Porte Méchante (Angry Door)
+                            HP = 20;
+                            return HP;
                     }
                     break;
                 case 2:
@@ -54,6 +60,12 @@ namespace RPGPD_Le_Jeu
                         case 3: // Mage Gobelin
                             HP = random.Next(8, 12);
                             break;
+                        case 4: // Géant (peut stun le joueur donc lui faire skipper son tour, si joueur a utilisé spell ou consommable, le joueur perd quand même les MP ou consommable)
+                            HP = random.Next(30, 41);
+                            return HP;
+                        case 5: // Garguouille (peut réduire attaque physique reçue de 50%)
+                            HP = random.Next(25, 31);
+                            return HP;
                     }
                     break;
                 case 3:
@@ -61,20 +73,26 @@ namespace RPGPD_Le_Jeu
                     {
                         case 1: // Troll
                             HP = random.Next(19, 31 );
-                            break;
+                            return HP;
                         case 2: // Champion squelette
                             HP = random.Next(15, 21);
-                            break;
+                            return HP;
                         case 3: // Sirène
                             HP = 25;
-                            break;
+                            return HP;
+                        case 4: // Démon Démoniaque (fait extrêmement mal, mais subit des dégats à chaque attaque, bloque très probable sur la verge de la mort)
+                            HP = random.Next(35, 46);
+                            return HP;
+                        case 5: // Dark sorcerer (un sorcier qui a mal tourné (magic barrier?))
+                            HP = random.Next(30, 36);
+                            return HP;
                     }
                     break;
             }
             return HP;
         } // Fin fonction GénérerHP
 
-        public int Générer_Attaque(int difficulty, int choix)
+        public int Générer_Attaque(int difficulty, int choix, int ennemiHP)
         {
             int Attack = 0;
             Random random = new Random();
@@ -127,61 +145,10 @@ namespace RPGPD_Le_Jeu
             return Attack;
         } // Fin fonction GénérerAttaque
 
-        public int Générer_EXP(int difficulty, int choix)
-        {
-            int exp = 0;
-            Random random = new Random();
-
-            switch (difficulty)
-            {
-                case 1:
-                    switch (choix)
-                    {
-                        case 1: // Gobelin
-                            exp = random.Next(1, 2);
-                            break;
-                        case 2: // Squelette
-                            exp = random.Next(1, 2);
-                            break;
-                        case 3: // Gros Rat
-                            exp = random.Next(1, 2);
-                            break;
-                    }
-                    break;
-                case 2:
-                    switch (choix)
-                    {
-                        case 1: // Orc
-                            exp = random.Next(1, 2);
-                            break;
-                        case 2: // Slime
-                            exp = random.Next(1, 2);
-                            break;
-                        case 3: // Mage Gobelin
-                            exp = random.Next(1, 2);
-                            break;
-                    }
-                    break;
-                case 3:
-                    switch (choix)
-                    {
-                        case 1: // Troll
-                            exp = random.Next(1, 2);
-                            break;
-                        case 2: // Champion squelette
-                            exp = random.Next(1, 2);
-                            break;
-                        case 3: // Sirène
-                            exp = 1;
-                            break;
-                    }
-                    break;
-            }
-            return exp; 
-        } // Fin fonction Générer XP
+        
 
         // Fonction Bloque des ennemis de base
-        public int GénérerBloque(int difficulty, int choix)
+        public int GénérerBloque(int difficulty, int choix, int ennemiHP)
         {
             int BloqueHeal = 0;
             Random random = new Random();
@@ -189,7 +156,25 @@ namespace RPGPD_Le_Jeu
             switch(difficulty)
             {
                 case 1:
-                    BloqueHeal = random.Next(-3, -5);
+                    switch(choix)
+                    {
+                        case 1:
+                        case 2:
+                        case 3:
+                            BloqueHeal = random.Next(-3, -5);
+                            break;
+                        case 4: // Swarm de gobelins
+                            if(ennemiHP <= 20)
+                            { BloqueHeal = random.Next(-9, -13); }
+                            else if (ennemiHP > 20 && ennemiHP <= 9)
+                            { BloqueHeal = random.Next(-6, -9); }
+                            else
+                            { BloqueHeal = random.Next(-3, -5); }
+                            break;
+                        case 5: // Porte méchante
+                            BloqueHeal = random.Next(-4, -6);
+                            break;
+                    }
                     break;
                 case 2:
                     switch (choix)
@@ -202,6 +187,12 @@ namespace RPGPD_Le_Jeu
                             break;
                         case 3: // Mage Gobelin
                             BloqueHeal = random.Next(-6, -9);
+                            break;
+                        case 4: // Géant
+                            BloqueHeal = random.Next(-3, -5);
+                            break;
+                        case 5: // Gargouille
+                            BloqueHeal = random.Next(-5, -7);
                             break;
                     }
                     break;
@@ -216,6 +207,12 @@ namespace RPGPD_Le_Jeu
                             break;
                         case 3: // Sirène
                             BloqueHeal = -10;
+                            break;
+                        case 4: // Démon démoniaque
+                            BloqueHeal = random.Next(-5, -7);
+                            break;
+                        case 5:
+                            BloqueHeal = random.Next(-6, -8);
                             break;
                     }
                     break;
@@ -374,68 +371,24 @@ namespace RPGPD_Le_Jeu
         public int Generer_Choix_Boss()
         {
             Random random = new Random();
-            int choix = random.Next(1, 3);
+            int choix = random.Next(4, 5);
             return choix;
         }
         // Fin fonction choisi boss
 
-        // Fonction BossHP
-
-        public int BossHP(int choixBoss, int difficulty)
-        {
-            int HP = 0;
-            Random random = new Random();
-            switch(difficulty)
-            {
-                case 1:
-                    switch(choixBoss)
-                    {
-                        case 1: // Swarm gobelin (l'équivalent de 3 gobelins en même temps)
-                            HP = random.Next(21, 31);
-                            return HP;
-                        case 2: // Porte Méchante (Angry Door)
-                            HP = 20;
-                            return HP;
-                    }
-                    break;
-                case 2:
-                    switch (choixBoss)
-                    {
-                        case 1: // Géant (peut stun le joueur donc lui faire skipper son tour, si joueur a utilisé spell ou consommable, le joueur perd quand même les MP ou consommable)
-                            HP = random.Next(30, 41);
-                            return HP;
-                        case 2: // Garguouille (peut réduire attaque physique reçue de 50%)
-                            HP = random.Next(25, 31);
-                            return HP;
-                    }
-                    break;
-                case 3:
-                    switch (choixBoss)
-                    {
-                        case 1: // Démon Démoniaque (fait extrêmement mal, mais subit des dégats à chaque attaque, bloque très probable sur la verge de la mort)
-                            HP = random.Next(35, 46);
-                            return HP;
-                        case 2: // Dark sorcerer (un sorcier qui a mal tourné (magic barrier?))
-                            HP = random.Next(30, 36);
-                            return HP;
-                    }
-                    break;
-            }
-            return HP;
-        }
-        // Fin fonction Générer HP Boss
+        
 
         // Début fonction RésultatTourMobs
-        public int ResultatTourMobsDeBase(int difficulty, int choix , int ChoixActionMobs)
+        public int ResultatTourMobsDeBase(int difficulty, int choix , int ChoixActionMobs, int ennemiHP)
         {
             int resultat = 0;
             switch (ChoixActionMobs)
             {
                 case 1:
-                    resultat = Générer_Attaque(difficulty, choix);
+                    resultat = Générer_Attaque(difficulty, choix, ennemiHP);
                     return resultat;
                 case 2:
-                    resultat = GénérerBloque(difficulty, choix);
+                    resultat = GénérerBloque(difficulty, choix, ennemiHP);
                     return resultat;
                 case 3:
                     resultat = 0;
@@ -444,8 +397,70 @@ namespace RPGPD_Le_Jeu
             return resultat;
         }
         // Fin fonction ResultatTourMobsDeBase
-        
 
+        /*
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         *  SERS PU A RIEN
+         */
+
+        public int Générer_EXP(int difficulty, int choix)
+        {
+            int exp = 0;
+            Random random = new Random();
+
+            switch (difficulty)
+            {
+                case 1:
+                    switch (choix)
+                    {
+                        case 1: // Gobelin
+                            exp = random.Next(1, 2);
+                            break;
+                        case 2: // Squelette
+                            exp = random.Next(1, 2);
+                            break;
+                        case 3: // Gros Rat
+                            exp = random.Next(1, 2);
+                            break;
+                    }
+                    break;
+                case 2:
+                    switch (choix)
+                    {
+                        case 1: // Orc
+                            exp = random.Next(1, 2);
+                            break;
+                        case 2: // Slime
+                            exp = random.Next(1, 2);
+                            break;
+                        case 3: // Mage Gobelin
+                            exp = random.Next(1, 2);
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (choix)
+                    {
+                        case 1: // Troll
+                            exp = random.Next(1, 2);
+                            break;
+                        case 2: // Champion squelette
+                            exp = random.Next(1, 2);
+                            break;
+                        case 3: // Sirène
+                            exp = 1;
+                            break;
+                    }
+                    break;
+            }
+            return exp;
+        } // Fin fonction Générer XP
 
 
     }
