@@ -1301,7 +1301,10 @@ namespace RPGPD_Le_Jeu
         //
         //
         //
-        // Alerte remaniement du combat par Thomas, Toxique pas touché
+        // Alerte remaniement du combat par Thomas, NE PAS ALTÉRER NI TOUCHER NI MODIFIER NI NE RIEN DU TOUT RAAAAAH
+        //
+        //
+        //
 
         private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potions qui full life
         {
