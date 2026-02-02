@@ -1291,18 +1291,18 @@ namespace RPGPD_Le_Jeu
 
         private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi)
         {
-            Mobs mobCheck = new Mobs(difficulty);
+            Mobs mob = new Mobs(difficulty);
             Player player = new Player(playerClass);
-            int EnnemiHP = mobCheck.Générer_HP(difficulty, choixDeLennemi);
+            int EnnemiHP = mob.Générer_HP(difficulty, choixDeLennemi);
             int playerHP = 0;
             int playerMP = 0;
             int playerPotion = 0;
             int playerAction = 0;
             Random rand = new Random();
-            int DivinDuJoueur = 0;
-            int DivinDuMobs = 0;
+            int intDivinDuJoueur = 0;
+            int intDivinDuMobs = 0;
             int EnnemiAction = 0;
-
+            
 
             do
             {
@@ -1313,7 +1313,16 @@ namespace RPGPD_Le_Jeu
                 switch (playerAction)
                 {
                     case 1: // Attack
-                        EnnemiAction = mobCheck.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        intDivinDuJoueur = player.Generer_Attaque_Player(difficulty, playerClass);
+                        if (EnnemiAction == 2)
+                        {
+                            intDivinDuJoueur = 0;
+                            intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi);
+                            // Animation de bloque du joueur et de l'attaque du joueur
+                            EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                        }
+                        
                         break;
                     case 2: // Block
                         break;
