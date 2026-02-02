@@ -335,9 +335,10 @@ namespace RPGPD_Le_Jeu
             if (currentDiff > 3) currentDiff = 3;
 
             // Génération via Mobs.cs
+            int gyat = 0;
             Mobs mobGenerator = new Mobs(currentDiff);
             _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
-            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId);
+            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId, gyat);
             _enemyHP = _enemyMaxHP;
 
             UpdateStatsUI();
@@ -1320,7 +1321,7 @@ namespace RPGPD_Le_Jeu
             do
             {
                 // Tour du joueur
-                playerAction = rand.Next(1, 5); // 1-Attack, 2-Block, 3-Spell, 4-Item
+                playerAction = _lastActionSelected;
                 // Fin tour du joueur
 
                 switch (playerAction)
@@ -1331,7 +1332,7 @@ namespace RPGPD_Le_Jeu
                         if (EnnemiAction == 2)
                         {
                             intDivinDuJoueur = 0;
-                            intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi);
+                            intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi, EnnemiHP);
                             // Animation de bloque du joueur et de l'attaque du joueur
                             EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
                         }
@@ -1342,7 +1343,7 @@ namespace RPGPD_Le_Jeu
                             { break; }
                             if (EnnemiAction == 1)
                             {
-                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi);
+                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi, EnnemiHP);
                                 playerHP = playerHP - intDivinDuMobs;
                                 if (playerHP <= 0)
                                 { Environment.Exit(0); }
@@ -1354,7 +1355,7 @@ namespace RPGPD_Le_Jeu
                         intDivinDuJoueur = player.Generer_Defense_Player(difficulty, playerClass);
                         if (EnnemiAction == 1)
                         {
-                            intDivinDuMobs = mob.Générer_Attaque(difficulty, playerClass);
+                            intDivinDuMobs = mob.Générer_Attaque(difficulty, playerClass, EnnemiHP);
                             intDivinDuMobs = intDivinDuMobs / 2;
                             playerHP = playerHP + intDivinDuJoueur - intDivinDuMobs;
                             if (playerHP <= 0)
@@ -1368,7 +1369,7 @@ namespace RPGPD_Le_Jeu
                         switch(EnnemiAction)
                         {
                             case 1:
-                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi);
+                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi, EnnemiHP);
                                 playerHP = playerHP - intDivinDuMobs;
                                 if (playerHP <= 0)
                                 { Environment.Exit(0); }
@@ -1376,7 +1377,7 @@ namespace RPGPD_Le_Jeu
                                 playerPotion = 0;
                                 break;
                             case 2:
-                                intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi);
+                                intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi, EnnemiHP);
                                 playerHP = playerHP + 15; // un full life
                                 playerPotion = 0;
                                 EnnemiHP = EnnemiHP + intDivinDuMobs;

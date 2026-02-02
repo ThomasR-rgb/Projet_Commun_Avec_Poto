@@ -211,7 +211,7 @@ namespace RPGPD_Le_Jeu
                         case 4: // Démon démoniaque
                             BloqueHeal = random.Next(-5, -7);
                             break;
-                        case 5:
+                        case 5: // Dark Sorcerer
                             BloqueHeal = random.Next(-6, -8);
                             break;
                     }
