@@ -1356,6 +1356,9 @@ namespace RPGPD_Le_Jeu
             int intDivinDuMobs = 0;
             int EnnemiAction = 0;
             int playerSpellAction = 0; // à régler
+            bool MagicSwordActive = false; // Exception des spells
+            bool DivineGraceActive = false;
+            bool ReflectActive = false;
 
             do
             {
@@ -1427,7 +1430,26 @@ namespace RPGPD_Le_Jeu
                             }
 
                         }
-
+                        switch(intDivinDuJoueur)
+                        {
+                            case 101: // Magic sword
+                                MagicSwordActive = true;
+                                break;
+                            case 102: // Divine grace
+                                DivineGraceActive = true;
+                                break;
+                            case 103: // Vampire touch
+                                intDivinDuJoueur = rand.Next(2, 6);
+                                EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                                playerHP = playerHP + intDivinDuJoueur;
+                                break;
+                            case 104: // reflect
+                                ReflectActive = true;
+                                break;
+                            case 105: // kill
+                                EnnemiHP = 0;
+                                break;
+                        }
                         break;
                     case 4: // Item
                         EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
