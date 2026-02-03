@@ -250,7 +250,7 @@ namespace RPGPD_Le_Jeu
                             intdivinduspell = 101;
                             return intdivinduspell;
                         case 2: // Cure
-                            intdivinduspell = random.Next(10, 16);
+                            intdivinduspell = random.Next(-10, -16);
                             return intdivinduspell;
                         case 3:
                             return intdivinduspell;
@@ -265,7 +265,7 @@ namespace RPGPD_Le_Jeu
                             intdivinduspell = random.Next(5, 11);
                             return intdivinduspell;
                         case 2: // Heal
-                            intdivinduspell = random.Next(8, 14);
+                            intdivinduspell = random.Next(-8, -14);
                             return intdivinduspell;
                         case 3: // Divine Grace
                             intdivinduspell = 102;
@@ -296,7 +296,7 @@ namespace RPGPD_Le_Jeu
             return intdivinduspell;
         } // Fin fonction intdivinduspell
 
-
+        
 
 
     } // pas sortir de ça

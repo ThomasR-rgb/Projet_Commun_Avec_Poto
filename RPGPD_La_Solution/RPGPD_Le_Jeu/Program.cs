@@ -1308,7 +1308,7 @@ namespace RPGPD_Le_Jeu
 
         private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potions qui full life
         {
-            Mobs mob = new Mobs(difficulty);
+            Mobs mob = new Mobs(difficulty); // Mes variables
             Player player = new Player(playerClass);
             int EnnemiHP = mob.Générer_HP(difficulty, choixDeLennemi);
             int playerHP = 0;
@@ -1319,12 +1319,13 @@ namespace RPGPD_Le_Jeu
             int intDivinDuJoueur = 0;
             int intDivinDuMobs = 0;
             int EnnemiAction = 0;
-
+            int playerSpellAction = 0; // à régler
 
             do
             {
                 // Tour du joueur
                 playerAction = _lastActionSelected;
+                
                 // Fin tour du joueur
 
                 switch (playerAction)
@@ -1332,56 +1333,80 @@ namespace RPGPD_Le_Jeu
                     case 1: // Attack
                         EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Attaque_Player(difficulty, playerClass);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 2)
                         {
                             intDivinDuJoueur = 0;
-                            intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi, EnnemiHP);
                             // Animation de bloque du joueur et de l'attaque du joueur
                             EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
                         }
-                        else
+                        else if (EnnemiAction == 1)
                         {
                             EnnemiHP = EnnemiHP - intDivinDuJoueur;
                             if (EnnemiHP <= 0)
                             { break; }
-                            if (EnnemiAction == 1)
-                            {
-                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi, EnnemiHP);
-                                playerHP = playerHP - intDivinDuMobs;
-                                if (playerHP <= 0)
-                                { Environment.Exit(0); }
-                            } // Faire else la compétence spécial
+                            playerHP = playerHP - intDivinDuMobs;
+                            if (playerHP <= 0)
+                            { Environment.Exit(0); }
                         }
-                        break;
+                        else if (EnnemiAction == 3)
+                        {
+
+                        }
+                            break;
                     case 2: // Block
                         EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Defense_Player(difficulty, playerClass);
+                        mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 1)
                         {
-                            intDivinDuMobs = mob.Générer_Attaque(difficulty, playerClass, EnnemiHP);
                             intDivinDuMobs = intDivinDuMobs / 2;
                             playerHP = playerHP + intDivinDuJoueur - intDivinDuMobs;
                             if (playerHP <= 0)
                             { Environment.Exit(0); }
                         }
+                        else if (EnnemiAction == 2)
+                        {
+                            playerHP = playerHP + intDivinDuJoueur;
+                            EnnemiHP = EnnemiHP - intDivinDuMobs;
+                        }
+                        else if(EnnemiAction == 3)
+                        {
+
+                        }
                         break;
                     case 3: // Spell
+                        intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
+                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
+                        if (intDivinDuJoueur != 101 && intDivinDuJoueur != 102 && intDivinDuJoueur != 103 && intDivinDuJoueur != 104 && intDivinDuJoueur != 105)
+                        {
+                            if(intDivinDuJoueur < 0)
+                            { playerHP = playerHP - intDivinDuJoueur; }
+                            else
+                            {
+                                EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                                if (EnnemiHP <= 0)
+                                { break; }
+                            }
+
+                        }
+
                         break;
                     case 4: // Item
                         EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         switch(EnnemiAction)
                         {
                             case 1:
-                                intDivinDuMobs = mob.Générer_Attaque(difficulty, choixDeLennemi, EnnemiHP);
                                 playerHP = playerHP - intDivinDuMobs;
                                 if (playerHP <= 0)
                                 { Environment.Exit(0); }
-                                playerHP = playerHP + 15; // un full life
+                                playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
                                 playerPotion = 0;
                                 break;
                             case 2:
-                                intDivinDuMobs = mob.GénérerBloque(difficulty, choixDeLennemi, EnnemiHP);
-                                playerHP = playerHP + 15; // un full life
+                                playerHP = player.MaxHPPlayerScale(difficulty, playerClass);
                                 playerPotion = 0;
                                 EnnemiHP = EnnemiHP + intDivinDuMobs;
                                 break;

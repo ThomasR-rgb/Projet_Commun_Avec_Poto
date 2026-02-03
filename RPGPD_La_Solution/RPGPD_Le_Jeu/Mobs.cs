@@ -111,6 +111,17 @@ namespace RPGPD_Le_Jeu
                         case 3: // Gros Rat
                             Attack = random.Next(3, 7);
                             break;
+                        case 4: // Swarm de gobelins
+                            if (ennemiHP >= 18)
+                            { Attack = random.Next(6, 10); }
+                            else if (ennemiHP > 19 && ennemiHP <= 9)
+                            { Attack = random.Next(4, 7); }
+                            else
+                            { Attack = random.Next(2, 4); }
+                            break;
+                        case 5: // Porte méchante
+                            Attack = random.Next(4, 7);
+                            break;
                     }
                     break;
                 case 2:
@@ -125,6 +136,12 @@ namespace RPGPD_Le_Jeu
                         case 3: // Mage Gobelin
                             Attack = random.Next(6, 9);
                             break;
+                        case 4: // Géant
+                            Attack = random.Next(5, 9);
+                            break;
+                        case 5: // Gargouille
+                            Attack = random.Next(7, 9);
+                            break;
                     }
                     break;
                 case 3:
@@ -138,6 +155,12 @@ namespace RPGPD_Le_Jeu
                             break;
                         case 3: // Sirène
                             Attack = 5;
+                            break;
+                        case 4: // Démon démoniaque
+                            Attack = random.Next(7, 11);
+                            break;
+                        case 5: // Dark Sorcerer
+                            Attack = random.Next(6, 10);
                             break;
                     }
                     break;
@@ -164,7 +187,7 @@ namespace RPGPD_Le_Jeu
                             BloqueHeal = random.Next(-3, -5);
                             break;
                         case 4: // Swarm de gobelins
-                            if(ennemiHP <= 20)
+                            if(ennemiHP >= 20)
                             { BloqueHeal = random.Next(-9, -13); }
                             else if (ennemiHP > 20 && ennemiHP <= 9)
                             { BloqueHeal = random.Next(-6, -9); }
