@@ -89,9 +89,11 @@ namespace RPGPD_Le_Jeu
         private int _playerLevel;
         private int _battlesWon;
         private int _potions;
-        private TaskCompletionSource<int>? _inputSignal;
         private int _lastActionSelected = 0; // 1=Atk, 2=Block, 3=Spell, 4=Item (GNIAAAAA)
 
+        // Sprites d'Alana
+        private Image? _whiteMageSprite;
+       
         // Données de l'Ennemi
         private string _enemyName = "Goblin";
         private int _enemyHP;
@@ -172,6 +174,23 @@ namespace RPGPD_Le_Jeu
         public GameForm()
         {
             SetupWindow();
+    
+            try 
+            {
+                // Je check yé où le .exe
+                string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+        
+                // Je fourre les sprites à l'intérieur du .exe
+                string imagePath = Path.Combine(exeFolder, "white_mage.png");
+        
+                _whiteMageSprite = Image.FromFile(imagePath);
+            }
+            catch 
+            {
+                // Anti-crash pour pas que ton ordi explose si y trouve pas le sprite
+                _whiteMageSprite = null; 
+            }
+
             InitializeComponents();
             InitializeAnimation();
             ShowMainMenu();
@@ -832,6 +851,27 @@ namespace RPGPD_Le_Jeu
             float x = 200 + _playerAnimOffset;
             float y = h / 2 + breathe;
 
+             // Dessine le nouveau sprite White Mage
+            if (_currentClass == PlayerClass.WhiteMage && _whiteMageSprite != null)
+            {
+              // Sauvegarde les settings actuels
+              var oldMode = g.InterpolationMode;
+              var oldPixelMode = g.PixelOffsetMode;
+
+              // Enlève les bordures floues
+              g.InterpolationMode = InterpolationMode.NearestNeighbor;
+              g.PixelOffsetMode = PixelOffsetMode.Half;
+
+              // Dessine le sprite en 100x100px
+              // J'ajuste le fat Y (-50) pour le mettre à la bonne place
+              g.DrawImage(_whiteMageSprite, x, y - 50, 100, 100);
+
+              // Même settings et retour à la norme
+              g.InterpolationMode = oldMode;
+              g.PixelOffsetMode = oldPixelMode;
+              return;
+            }
+
             using (SolidBrush b = new SolidBrush(Color.SteelBlue))
                 g.FillEllipse(b, x, y, 80, 80);
 
@@ -847,10 +887,6 @@ namespace RPGPD_Le_Jeu
             {
                 PointF[] hat = { new PointF(x + 10, y - 30), new PointF(x + 70, y - 30), new PointF(x + 40, y - 80) };
                 g.FillPolygon(Brushes.Purple, hat);
-            }
-            else // Mage Blanc
-            {
-                using (Pen p = new Pen(Color.Gold, 3)) g.DrawEllipse(p, x + 15, y - 50, 50, 10);
             }
 
             // Clignement des yeux
@@ -1306,7 +1342,7 @@ namespace RPGPD_Le_Jeu
         //
         //
 
-        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potions qui full life
+        private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potion qui full life
         {
             Mobs mob = new Mobs(difficulty); // Mes variables
             Player player = new Player(playerClass);
