@@ -354,10 +354,10 @@ namespace RPGPD_Le_Jeu
             if (currentDiff > 3) currentDiff = 3;
 
             // Génération via Mobs.cs
-            int gyat = 0;
+            int gyat = 1;
             Mobs mobGenerator = new Mobs(currentDiff, 1, 1);
-            _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
-            _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId, gyat);
+            _enemyMaxHP = mobGenerator.Générer_HP();
+            _enemyDamage = mobGenerator.Générer_Attaque(gyat);
             _enemyHP = _enemyMaxHP;
 
             UpdateStatsUI();
@@ -1346,7 +1346,7 @@ namespace RPGPD_Le_Jeu
         {
             Mobs mob = new Mobs(difficulty, choixDeLennemi, playerClass); // Mes variables
             Player player = new Player(playerClass);
-            int EnnemiHP = mob.Générer_HP(difficulty, choixDeLennemi);
+            int EnnemiHP = mob.Générer_HP();
             int playerHP = 0;
             int playerMP = 0;
             int playerPotion = 0;
@@ -1359,6 +1359,7 @@ namespace RPGPD_Le_Jeu
             bool MagicSwordActive = false; // Exception des spells
             bool DivineGraceActive = false;
             bool ReflectActive = false;
+            bool RoughSkinActive = false;
 
             do
             {
@@ -1390,7 +1391,32 @@ namespace RPGPD_Le_Jeu
                         }
                         else if (EnnemiAction == 3)
                         {
-
+                            if (intDivinDuMobs == 106) // Stun
+                            { intDivinDuJoueur = 0; intDivinDuMobs = 0; }
+                            else if (intDivinDuMobs == 107) // Rough skin
+                            { EnnemiHP = EnnemiHP - intDivinDuJoueur; RoughSkinActive = true; }
+                            else if (intDivinDuMobs == 108) // Erase
+                            { 
+                                EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                                if (playerHP < player.MaxHPPlayerScale(difficulty, playerClass) / 2)
+                                { playerHP = 0; Environment.Exit(0); }
+                            }
+                            else
+                            {
+                                if(intDivinDuMobs < 0)
+                                {
+                                    intDivinDuJoueur = 0;
+                                    EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                                }
+                                else
+                                {
+                                    EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                                    if (EnnemiHP <= 0)
+                                    { break; }
+                                    else
+                                    { playerHP = playerHP - intDivinDuMobs; }
+                                }
+                            }
                         }
                             break;
                     case 2: // Block

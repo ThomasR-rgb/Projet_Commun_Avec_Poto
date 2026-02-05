@@ -24,7 +24,7 @@ namespace RPGPD_Le_Jeu
             int choix = random.Next(1, 4);
             return choix;
         }
-        public int Générer_HP(int difficulty, int choix)
+        public int Générer_HP()
         {
             int HP = 0;
             Random random = new Random();
@@ -32,7 +32,7 @@ namespace RPGPD_Le_Jeu
             switch (difficulty)
             {
                 case 1:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Gobelin
                             HP = random.Next(7, 11);
@@ -52,7 +52,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 2:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Orc
                             HP = random.Next(9, 15);
@@ -72,7 +72,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 3:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Troll
                             HP = random.Next(19, 31 );
@@ -95,7 +95,7 @@ namespace RPGPD_Le_Jeu
             return HP;
         } // Fin fonction GénérerHP
 
-        public int Générer_Attaque(int difficulty, int choix, int ennemiHP)
+        public int Générer_Attaque(int ennemiHP)
         {
             int Attack = 0;
             Random random = new Random();
@@ -103,7 +103,7 @@ namespace RPGPD_Le_Jeu
             switch (difficulty)
             {
                 case 1:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Gobelin
                             Attack = random.Next(2, 4);
@@ -128,7 +128,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 2:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Orc
                             Attack = random.Next(3, 6);
@@ -148,7 +148,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 3:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Troll
                             Attack = random.Next(5, 10);
@@ -174,7 +174,7 @@ namespace RPGPD_Le_Jeu
         
 
         // Fonction Bloque des ennemis de base
-        public int GénérerBloque(int difficulty, int choix, int ennemiHP)
+        public int GénérerBloque(int ennemiHP)
         {
             int BloqueHeal = 0;
             Random random = new Random();
@@ -182,7 +182,7 @@ namespace RPGPD_Le_Jeu
             switch(difficulty)
             {
                 case 1:
-                    switch(choix)
+                    switch(choixMob)
                     {
                         case 1:
                         case 2:
@@ -203,7 +203,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 2:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Orc
                             BloqueHeal = random.Next(-4, -7);
@@ -223,7 +223,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 3:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Troll
                             BloqueHeal = random.Next(-7, -9);
@@ -403,19 +403,20 @@ namespace RPGPD_Le_Jeu
         // Fin fonction choisi boss
 
         // Liste des abilités spéciales
-        /* Angry door: door close -1 annd block damage
+        /* Angry door: door close -1 and block damage
          * Mage gobelin: lightning 7-10 DP
          * Géant: Stun 106
          * Garguouille: Peau dure 107
          * Troll: Swing 50% = 0 DP  50% 10-15 DP
          * Sirène: Water song -8--13 heal
-         * Dark Sorcerer: Erase si joueur est en bas de 50%, kill sinon rien
+         * Dark Sorcerer: Erase si joueur est en bas de 50%, kill sinon rien 108
          */
 
         // Fonction abilité spéciale des mobs
         public int AbiliteSpecialeMob()
         {
             Random random = new Random();
+            int intdivinablilite = 0;
 
             switch (difficulty)
             {
@@ -431,6 +432,7 @@ namespace RPGPD_Le_Jeu
                         case 4: // Goblin Swarm
                             break;
                         case 5: // Angry door
+                            intdivinablilite = -1;
                             break;
                     }
                     break;
@@ -442,10 +444,13 @@ namespace RPGPD_Le_Jeu
                         case 2: // Slime
                             break;
                         case 3: // Mage Gobelin
+                            intdivinablilite = random.Next(7, 11);
                             break;
                         case 4: // Géant
+                            intdivinablilite = 106;
                             break;
                         case 5: // Garguouille
+                            intdivinablilite = 107;
                             break;
                     }
                     break;
@@ -453,22 +458,27 @@ namespace RPGPD_Le_Jeu
                     switch (choixMob)
                     {
                         case 1: // Troll
+                            intdivinablilite = random.Next(1, 3);
+                            if (intdivinablilite == 1)
+                            { intdivinablilite = 0; }
+                            if (intdivinablilite == 2)
+                            { intdivinablilite = random.Next(10, 16); }
                             break;
                         case 2: // Champion squelette
                             break;
                         case 3: // Sirène
+                            intdivinablilite = random.Next(-8, -14);
                             break;
                         case 4: // Démon Démoniaque
                             break;
                         case 5: // Dark Sorcerer
+                            intdivinablilite = 108;
                             break;
                     }
                     break;
             }
-            return exp;
-        
-
-        }
+            return intdivinablilite;
+        } // Fin fonction abilité de monstre
         
 
         // Début fonction RésultatTourMobs
@@ -478,13 +488,13 @@ namespace RPGPD_Le_Jeu
             switch (ChoixActionMobs)
             {
                 case 1:
-                    resultat = Générer_Attaque(difficulty, choix, ennemiHP);
+                    resultat = Générer_Attaque(ennemiHP);
                     return resultat;
                 case 2:
-                    resultat = GénérerBloque(difficulty, choix, ennemiHP);
+                    resultat = GénérerBloque(ennemiHP);
                     return resultat;
                 case 3:
-                    resultat = 0;
+                    resultat = AbiliteSpecialeMob();
                     return resultat;
             }
             return resultat;
