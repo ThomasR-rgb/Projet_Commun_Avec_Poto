@@ -8,11 +8,14 @@ namespace RPGPD_Le_Jeu
 {
     internal class Mobs
     {
-        public int difficulty;
-
-        public Mobs (int difficulty)
+        public int difficulty { get; set; }
+        public int choixMob { get; set; }
+        public int playerClass { get; set; }
+        public Mobs (int difficulty, int choixMob, int playerClass)
         {
             this.difficulty = difficulty;
+            this.choixMob = choixMob;
+            this.playerClass = playerClass;
         }
 
         public int Générer_choix_Mob()
@@ -244,7 +247,7 @@ namespace RPGPD_Le_Jeu
         }
 
         // Fonction pour l'IA des petits ennemis
-        public int ChoixActionEnnemi(int difficulty, int choix, int PlayerHP, int PlayerClass, int MobHP) 
+        public int ChoixActionEnnemi(int PlayerHP, int MobHP) 
         {
             int ChoixEnnemi = 0;
             Random random = new Random();
@@ -254,7 +257,7 @@ namespace RPGPD_Le_Jeu
             switch (difficulty)
             {
                 case 1:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Gobelin
                             aleatoire = random.Next(0, 11);
@@ -295,7 +298,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 2:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Orc
                             aleatoire = random.Next(0, 11);
@@ -340,7 +343,7 @@ namespace RPGPD_Le_Jeu
                     }
                     break;
                 case 3:
-                    switch (choix)
+                    switch (choixMob)
                     {
                         case 1: // Troll
                             aleatoire = random.Next(0, 11);
@@ -399,6 +402,73 @@ namespace RPGPD_Le_Jeu
         }
         // Fin fonction choisi boss
 
+        // Liste des abilités spéciales
+        /* Angry door: door close -1 annd block damage
+         * Mage gobelin: lightning 7-10 DP
+         * Géant: Stun 106
+         * Garguouille: Peau dure 107
+         * Troll: Swing 50% = 0 DP  50% 10-15 DP
+         * Sirène: Water song -8--13 heal
+         * Dark Sorcerer: Erase si joueur est en bas de 50%, kill sinon rien
+         */
+
+        // Fonction abilité spéciale des mobs
+        public int AbiliteSpecialeMob()
+        {
+            Random random = new Random();
+
+            switch (difficulty)
+            {
+                case 1:
+                    switch (choixMob)
+                    {
+                        case 1: // Gobelin
+                            break;
+                        case 2: // Squelette
+                            break;
+                        case 3: // Gros Rat
+                            break;
+                        case 4: // Goblin Swarm
+                            break;
+                        case 5: // Angry door
+                            break;
+                    }
+                    break;
+                case 2:
+                    switch (choixMob)
+                    {
+                        case 1: // Orc
+                            break;
+                        case 2: // Slime
+                            break;
+                        case 3: // Mage Gobelin
+                            break;
+                        case 4: // Géant
+                            break;
+                        case 5: // Garguouille
+                            break;
+                    }
+                    break;
+                case 3:
+                    switch (choixMob)
+                    {
+                        case 1: // Troll
+                            break;
+                        case 2: // Champion squelette
+                            break;
+                        case 3: // Sirène
+                            break;
+                        case 4: // Démon Démoniaque
+                            break;
+                        case 5: // Dark Sorcerer
+                            break;
+                    }
+                    break;
+            }
+            return exp;
+        
+
+        }
         
 
         // Début fonction RésultatTourMobs

@@ -355,7 +355,7 @@ namespace RPGPD_Le_Jeu
 
             // Génération via Mobs.cs
             int gyat = 0;
-            Mobs mobGenerator = new Mobs(currentDiff);
+            Mobs mobGenerator = new Mobs(currentDiff, 1, 1);
             _enemyMaxHP = mobGenerator.Générer_HP(currentDiff, _selectedMobId);
             _enemyDamage = mobGenerator.Générer_Attaque(currentDiff, _selectedMobId, gyat);
             _enemyHP = _enemyMaxHP;
@@ -437,10 +437,10 @@ namespace RPGPD_Le_Jeu
         private void HandleEnemyBlockInteraction(ref int damage)
         {
             int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
-            Mobs mobCheck = new Mobs(currentDiff);
+            Mobs mobCheck = new Mobs(currentDiff, 1, 1);
 
             // Prévision de l'action ennemie pour vérifier le blocage
-            int mobAction = mobCheck.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+            int mobAction = mobCheck.ChoixActionEnnemi(_playerHP, _enemyHP);
 
             if (mobAction == 2) // 2 = Block
             {
@@ -540,8 +540,8 @@ namespace RPGPD_Le_Jeu
             await Task.Delay(1000); // Temps de réflexion
 
             int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
-            Mobs mobAI = new Mobs(currentDiff);
-            int actionCode = mobAI.ChoixActionEnnemi(currentDiff, _selectedMobId, _playerHP, (int)_currentClass, _enemyHP);
+            Mobs mobAI = new Mobs(currentDiff, 1, 1);
+            int actionCode = mobAI.ChoixActionEnnemi(_playerHP, _enemyHP);
 
             _enemyIsBlocking = false; // Reset
 
@@ -694,7 +694,7 @@ namespace RPGPD_Le_Jeu
         private void GenerateEncounterChoices()
         {
             int currentDiff = _playerLevel > 3 ? 3 : _playerLevel;
-            Mobs mobGenerator = new Mobs(currentDiff);
+            Mobs mobGenerator = new Mobs(currentDiff, 1, 1);
 
             _leftMobId = mobGenerator.Générer_choix_Mob();
             _rightMobId = mobGenerator.Générer_choix_Mob();
@@ -1344,7 +1344,7 @@ namespace RPGPD_Le_Jeu
 
         private void BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potion qui full life
         {
-            Mobs mob = new Mobs(difficulty); // Mes variables
+            Mobs mob = new Mobs(difficulty, choixDeLennemi, playerClass); // Mes variables
             Player player = new Player(playerClass);
             int EnnemiHP = mob.Générer_HP(difficulty, choixDeLennemi);
             int playerHP = 0;
@@ -1370,7 +1370,7 @@ namespace RPGPD_Le_Jeu
                 switch (playerAction)
                 {
                     case 1: // Attack
-                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Attaque_Player(difficulty, playerClass);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 2)
@@ -1394,7 +1394,7 @@ namespace RPGPD_Le_Jeu
                         }
                             break;
                     case 2: // Block
-                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Defense_Player(difficulty, playerClass);
                         mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 1)
@@ -1416,7 +1416,7 @@ namespace RPGPD_Le_Jeu
                         break;
                     case 3: // Spell
                         intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
-                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         if (intDivinDuJoueur != 101 && intDivinDuJoueur != 102 && intDivinDuJoueur != 103 && intDivinDuJoueur != 104 && intDivinDuJoueur != 105)
                         {
@@ -1452,7 +1452,7 @@ namespace RPGPD_Le_Jeu
                         }
                         break;
                     case 4: // Item
-                        EnnemiAction = mob.ChoixActionEnnemi(difficulty, choixDeLennemi, playerHP, playerClass, EnnemiHP);
+                        EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
                         switch(EnnemiAction)
                         {
