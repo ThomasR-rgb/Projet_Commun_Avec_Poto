@@ -482,7 +482,7 @@ namespace RPGPD_Le_Jeu
         
 
         // Début fonction RésultatTourMobs
-        public int ResultatTourMobsDeBase(int difficulty, int choix , int ChoixActionMobs, int ennemiHP)
+        public int ResultatTourMobsDeBase(int ChoixActionMobs, int ennemiHP)
         {
             int resultat = 0;
             switch (ChoixActionMobs)

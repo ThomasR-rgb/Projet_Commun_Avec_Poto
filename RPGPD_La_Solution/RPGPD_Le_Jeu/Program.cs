@@ -1373,7 +1373,7 @@ namespace RPGPD_Le_Jeu
                     case 1: // Attack
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Attaque_Player(difficulty, playerClass);
-                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 2)
                         {
                             intDivinDuJoueur = 0;
@@ -1422,7 +1422,7 @@ namespace RPGPD_Le_Jeu
                     case 2: // Block
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuJoueur = player.Generer_Defense_Player(difficulty, playerClass);
-                        mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
+                        mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 1)
                         {
                             intDivinDuMobs = intDivinDuMobs / 2;
@@ -1443,7 +1443,7 @@ namespace RPGPD_Le_Jeu
                     case 3: // Spell
                         intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
-                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         if (intDivinDuJoueur != 101 && intDivinDuJoueur != 102 && intDivinDuJoueur != 103 && intDivinDuJoueur != 104 && intDivinDuJoueur != 105)
                         {
                             if(intDivinDuJoueur < 0)
@@ -1479,7 +1479,7 @@ namespace RPGPD_Le_Jeu
                         break;
                     case 4: // Item
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
-                        intDivinDuMobs = mob.ResultatTourMobsDeBase(difficulty, choixDeLennemi, EnnemiAction, EnnemiHP);
+                        intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         switch(EnnemiAction)
                         {
                             case 1:
