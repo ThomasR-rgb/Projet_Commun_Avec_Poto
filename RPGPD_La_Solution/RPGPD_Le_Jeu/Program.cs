@@ -1500,7 +1500,7 @@ namespace RPGPD_Le_Jeu
                         break;
                 }
             } while (EnnemiHP > 0);
-
+             
         }// Fin du tung tung tung sahur
     }
 }

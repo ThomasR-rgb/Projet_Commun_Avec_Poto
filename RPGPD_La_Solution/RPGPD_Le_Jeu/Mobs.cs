@@ -295,6 +295,27 @@ namespace RPGPD_Le_Jeu
                                 { ChoixEnnemi = 2; }
                             }
                             return ChoixEnnemi;
+                        case 4: // Swarm de gobelins
+                            aleatoire = random.Next(0, 11);
+                            if (PlayerHP < 4)
+                            { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 7)
+                                { ChoixEnnemi = 1; }
+                                else
+                                { ChoixEnnemi = 2; }
+                            }
+                            return ChoixEnnemi;
+                        case 5: // Angry door
+                            aleatoire = random.Next(0, 11);
+                            if(aleatoire <= 5)
+                            { ChoixEnnemi = 1;}
+                            else if (aleatoire <= 7)
+                            { ChoixEnnemi = 2; }
+                            else
+                            { ChoixEnnemi = 3; }
+                            return ChoixEnnemi;
                     }
                     break;
                 case 2:
@@ -318,10 +339,8 @@ namespace RPGPD_Le_Jeu
                             { ChoixEnnemi = 1; }
                             else
                             {
-                                if (aleatoire <= 5)
+                                if (aleatoire <= 7)
                                 { ChoixEnnemi = 1; }
-                                else if (aleatoire == 10)
-                                { ChoixEnnemi = 3; }
                                 else
                                 { ChoixEnnemi = 2; }
                             }
@@ -339,6 +358,28 @@ namespace RPGPD_Le_Jeu
                                 else
                                 { ChoixEnnemi = 2; }
                             }
+                            return ChoixEnnemi;
+                        case 4: // Géant
+                            aleatoire = random.Next(0, 11);
+                            if (PlayerHP < 8 || MobHP >= 30)
+                            { ChoixEnnemi = 1; }
+                            else if (aleatoire <= 7)
+                            {  ChoixEnnemi = 1; }
+                            else if (aleatoire <= 9)
+                            {  ChoixEnnemi = 2; }
+                            else
+                            { ChoixEnnemi = 3; }
+                            return ChoixEnnemi;
+                        case 5: // Garguouille
+                            aleatoire = random.Next(0, 11);
+                            if (PlayerHP <= 8 || MobHP > 25)
+                            {  ChoixEnnemi = 1; }
+                            else if (aleatoire <= 6)
+                            {  ChoixEnnemi = 1; }
+                            else if(aleatoire <= 8)
+                            {  ChoixEnnemi = 2; }
+                            else
+                            { ChoixEnnemi = 3; }
                             return ChoixEnnemi;
                     }
                     break;
@@ -379,14 +420,21 @@ namespace RPGPD_Le_Jeu
                             { ChoixEnnemi = 1; }
                             else
                             {
-                                if (aleatoire <= 3)
+                                if (aleatoire <= 5)
                                 { ChoixEnnemi = 1; }
-                                else if (aleatoire == 5 || aleatoire == 6 || aleatoire == 4)
+                                else if (aleatoire == 6 || aleatoire == 7)
                                 { ChoixEnnemi = 3; }
                                 else
                                 { ChoixEnnemi = 2; }
                             }
                             return ChoixEnnemi;
+                        case 4: // Démon Démoniaque
+                            aleatoire = random.Next(0, 11);
+                            if(MobHP <= 4)
+                            { ChoixEnnemi = 2;}
+                            else if (PlayerHP < 9 || MobHP >= 25)
+                            { ChoixEnnemi = 1;}
+
                     }
                     break;
             }
@@ -397,7 +445,7 @@ namespace RPGPD_Le_Jeu
         public int Generer_Choix_Boss()
         {
             Random random = new Random();
-            int choix = random.Next(4, 5);
+            int choix = random.Next(4, 6);
             return choix;
         }
         // Fin fonction choisi boss
