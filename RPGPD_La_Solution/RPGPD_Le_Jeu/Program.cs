@@ -1359,7 +1359,7 @@ namespace RPGPD_Le_Jeu
             bool MagicSwordActive = false; // Exception des spells
             bool DivineGraceActive = false;
             bool ReflectActive = false;
-            bool RoughSkinActive = false;
+            bool RoughSkinActive = false; // Exception de capa de monstre
 
             do
             {
@@ -1382,6 +1382,7 @@ namespace RPGPD_Le_Jeu
                         }
                         else if (EnnemiAction == 1)
                         {
+                            
                             EnnemiHP = EnnemiHP - intDivinDuJoueur;
                             if (EnnemiHP <= 0)
                             { break; }
@@ -1502,5 +1503,18 @@ namespace RPGPD_Le_Jeu
             } while (EnnemiHP > 0);
              
         }// Fin du tung tung tung sahur
+
+        public int GérerMesFuckassExceptionsJ(bool magicSwordActive, bool roughskinActive, int intdivindujoueur)
+        {
+            if (magicSwordActive == true) { intdivindujoueur = intdivindujoueur + 1; return intdivindujoueur; }
+            if (roughskinActive == true) { intdivindujoueur = intdivindujoueur - 2; return intdivindujoueur; }
+            return intdivindujoueur;
+        }
+        public int GérerMesFuckassExceptionsM(bool reflectActive, int intdivindumob)
+        {
+
+            return intdivindumob;
+        }
+        
     }
 }
