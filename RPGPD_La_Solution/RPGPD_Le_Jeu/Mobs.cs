@@ -434,7 +434,22 @@ namespace RPGPD_Le_Jeu
                             { ChoixEnnemi = 2;}
                             else if (PlayerHP < 9 || MobHP >= 25)
                             { ChoixEnnemi = 1;}
-
+                            else
+                            {
+                                if (aleatoire <= 8) { ChoixEnnemi = 1; }
+                                else { ChoixEnnemi = 2; }
+                            }
+                                break;
+                        case 5: // Dark Sorcerer
+                            aleatoire = random.Next(0, 11);
+                            if (MobHP >= 28 || PlayerHP < 8) { ChoixEnnemi = 1; }
+                            else
+                            {
+                                if (aleatoire <= 4) { ChoixEnnemi = 1; }
+                                else if (aleatoire <= 7) { ChoixEnnemi = 2; }
+                                else { ChoixEnnemi = 3; }
+                            }
+                            break;
                     }
                     break;
             }
