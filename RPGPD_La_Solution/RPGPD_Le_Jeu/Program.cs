@@ -1382,7 +1382,8 @@ namespace RPGPD_Le_Jeu
                         }
                         else if (EnnemiAction == 1)
                         {
-                            
+                            intDivinDuJoueur = GérerMesFuckassExceptionsJ(MagicSwordActive, RoughSkinActive, intDivinDuJoueur);
+                            intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs);
                             EnnemiHP = EnnemiHP - intDivinDuJoueur;
                             if (EnnemiHP <= 0)
                             { break; }
@@ -1392,6 +1393,7 @@ namespace RPGPD_Le_Jeu
                         }
                         else if (EnnemiAction == 3)
                         {
+                            intDivinDuJoueur = GérerMesFuckassExceptionsJ(MagicSwordActive, RoughSkinActive, intDivinDuJoueur);
                             if (intDivinDuMobs == 106) // Stun
                             { intDivinDuJoueur = 0; intDivinDuMobs = 0; }
                             else if (intDivinDuMobs == 107) // Rough skin
@@ -1512,7 +1514,7 @@ namespace RPGPD_Le_Jeu
         }
         public int GérerMesFuckassExceptionsM(bool reflectActive, int intdivindumob)
         {
-
+            if (reflectActive == true) { intdivindumob = intdivindumob - 2; }
             return intdivindumob;
         }
         
