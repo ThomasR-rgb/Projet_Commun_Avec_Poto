@@ -1563,11 +1563,17 @@ namespace RPGPD_Le_Jeu
                                 playerHP = playerHP - intDivinDuMobs;
                                 if (playerHP <= 0)
                                 { Environment.Exit(0); }
-                                playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
+                                if (playerPotion == 1)
+                                {
+                                    playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
+                                }
                                 playerPotion = 0;
                                 break;
                             case 2:
-                                playerHP = player.MaxHPPlayerScale(difficulty, playerClass);
+                                if (playerPotion == 1)
+                                {
+                                    playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
+                                }
                                 playerPotion = 0;
                                 EnnemiHP = EnnemiHP + intDivinDuMobs;
                                 break;
@@ -1575,7 +1581,6 @@ namespace RPGPD_Le_Jeu
                         break;
                 }
             } while (EnnemiHP > 0);
-             
         }// Fin du tung tung tung sahur
 
         public int GérerMesFuckassExceptionsJ(bool magicSwordActive, bool roughskinActive, int intdivindujoueur)
