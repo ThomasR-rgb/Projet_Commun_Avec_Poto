@@ -296,8 +296,70 @@ namespace RPGPD_Le_Jeu
             return intdivinduspell;
         } // Fin fonction intdivinduspell
 
-        
+        public int ManaCostJoueur(int playerclass, int ChoixDuSpell, int MP)
+        {
+            switch (playerclass)
+            {
+                case 1: // Fighter
+                    switch (ChoixDuSpell)
+                    {
+                        case 1: // Magic sword
+                            MP = MP - 1;
+                            return MP;
+                        case 2: // Cure
+                            MP = MP - 1;
+                            return MP;
+                        case 3:
+                            return MP;
+                        case 4:
+                            return MP;
+                    }
+                    break;
+                case 2: // White mage
+                    switch (ChoixDuSpell)
+                    {
+                        case 1: // Fire bolt
+                            MP = MP - 1;
+                            return MP;
+                        case 2: // Heal
+                            MP = MP - 1;
+                            return MP;
+                        case 3: // Divine Grace
+                            MP = MP - 2;
+                            return MP;
+                        case 4: // Smite
+                            MP = MP - 3;
+                            return MP;
+                    }
+                    break;
+                case 3: // Dark mage
+                    switch (ChoixDuSpell)
+                    {
+                        case 1: // Vampire Touch
+                            MP = MP - 1;
+                            return MP;
+                        case 2: // Reflect
+                            MP = MP - 2;
+                            return MP;
+                        case 3: // Ice Beam
+                            MP = MP - 2;
+                            return MP;
+                        case 4: // Kill
+                            MP = MP - 7;
+                            return MP;
+                    }
+                    break;
+            }
+            return MP;
+        } // Fin fonction ManaCost
 
+        public bool EstCeQueCCook(int MP)
+        {
+            bool EstCook = false;
+            if (MP >= 0) { EstCook = false; }
+            if (MP < 0) { EstCook = true; }
+            return EstCook;
+        }
 
     } // pas sortir de ça
 }

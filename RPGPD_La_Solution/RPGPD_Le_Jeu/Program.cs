@@ -1349,6 +1349,7 @@ namespace RPGPD_Le_Jeu
             int EnnemiHP = mob.Générer_HP();
             int playerHP = 0;
             int playerMP = 0;
+            bool AcourtDeMP = false;
             int playerPotion = 0;
             int playerAction = 0;
             Random rand = new Random();
@@ -1428,6 +1429,8 @@ namespace RPGPD_Le_Jeu
                         mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         if (EnnemiAction == 1)
                         {
+                            intDivinDuMobs = mob.Générer_Attaque(EnnemiHP);
+                            intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs);
                             intDivinDuMobs = intDivinDuMobs / 2;
                             playerHP = playerHP + intDivinDuJoueur - intDivinDuMobs;
                             if (playerHP <= 0)
@@ -1440,13 +1443,41 @@ namespace RPGPD_Le_Jeu
                         }
                         else if(EnnemiAction == 3)
                         {
-
+                            intDivinDuMobs = mob.AbiliteSpecialeMob();
+                            if (intDivinDuMobs == 106) // Stun
+                            { intDivinDuJoueur = 0; intDivinDuMobs = 0; }
+                            else if (intDivinDuMobs == 107) // Rough skin
+                            { EnnemiHP = EnnemiHP - intDivinDuJoueur; RoughSkinActive = true; }
+                            else if (intDivinDuMobs == 108) // Erase
+                            {
+                                if (playerHP < player.MaxHPPlayerScale(difficulty, playerClass) / 2)
+                                { playerHP = 0; Environment.Exit(0); }
+                            }
+                            else
+                            {
+                                if (intDivinDuMobs < 0)
+                                {
+                                    intDivinDuJoueur = 0;
+                                    EnnemiHP = EnnemiHP - intDivinDuMobs;
+                                }
+                                else
+                                {
+                                    intDivinDuMobs = intDivinDuMobs / 2;
+                                    playerHP = playerHP - intDivinDuMobs;
+                                }
+                            }
                         }
                         break;
                     case 3: // Spell
+                        playerMP = player.spellJoueur(playerClass, playerSpellAction);
+                        AcourtDeMP = player.EstCeQueCCook(playerMP);
+                        if (AcourtDeMP == true) { intDivinDuJoueur = 0; }
                         intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
+                        if (intDivinDuMobs == 106) // Stun
+                        { intDivinDuJoueur = 0; intDivinDuMobs = 0; }
+                        if (EnnemiAction == 1) { intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs); }
                         if (intDivinDuJoueur != 101 && intDivinDuJoueur != 102 && intDivinDuJoueur != 103 && intDivinDuJoueur != 104 && intDivinDuJoueur != 105)
                         {
                             if(intDivinDuJoueur < 0)
@@ -1457,7 +1488,6 @@ namespace RPGPD_Le_Jeu
                                 if (EnnemiHP <= 0)
                                 { break; }
                             }
-
                         }
                         switch(intDivinDuJoueur)
                         {
@@ -1479,11 +1509,55 @@ namespace RPGPD_Le_Jeu
                                 EnnemiHP = 0;
                                 break;
                         }
+
+                        if (EnnemiAction == 2)
+                        {
+                            intDivinDuJoueur = 0;
+                            // Animation de bloque du joueur et de l'attaque du joueur
+                            EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                            if (DivineGraceActive) { intDivinDuJoueur = player.MaxHPPlayerScale(difficulty, playerClass); }
+                        }
+                        else if (EnnemiAction == 1)
+                        {
+                            intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs);
+                            playerHP = playerHP - intDivinDuMobs;
+                            if (DivineGraceActive) { intDivinDuJoueur = player.MaxHPPlayerScale(difficulty, playerClass); }
+                            if (playerHP <= 0)
+                            { Environment.Exit(0); }
+                        }
+                        else if (EnnemiAction == 3)
+                        {
+                            
+                            if (intDivinDuMobs == 107) // Rough skin
+                            { EnnemiHP = EnnemiHP - intDivinDuJoueur; RoughSkinActive = true; }
+                            else if (intDivinDuMobs == 108) // Erase
+                            {
+                                if (playerHP < player.MaxHPPlayerScale(difficulty, playerClass) / 2)
+                                { playerHP = 0; Environment.Exit(0); }
+                            }
+                            else
+                            {
+                                if (intDivinDuMobs < 0)
+                                {
+                                    intDivinDuJoueur = 0;
+                                    EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                                }
+                                else
+                                {
+                                    if (EnnemiHP <= 0)
+                                    { break; }
+                                    else
+                                    { playerHP = playerHP - intDivinDuMobs; }
+                                }
+                            }
+                        }
+
                         break;
                     case 4: // Item
-                        EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
+                        EnnemiAction = rand.Next(1, 3);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
-                        switch(EnnemiAction)
+                        intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs);
+                        switch (EnnemiAction)
                         {
                             case 1:
                                 playerHP = playerHP - intDivinDuMobs;
@@ -1496,8 +1570,6 @@ namespace RPGPD_Le_Jeu
                                 playerHP = player.MaxHPPlayerScale(difficulty, playerClass);
                                 playerPotion = 0;
                                 EnnemiHP = EnnemiHP + intDivinDuMobs;
-                                break;
-                            case 3:
                                 break;
                         }
                         break;
