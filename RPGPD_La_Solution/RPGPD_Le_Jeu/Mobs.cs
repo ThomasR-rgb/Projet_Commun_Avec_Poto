@@ -175,76 +175,83 @@ namespace RPGPD_Le_Jeu
 
         // Fonction Bloque des ennemis de base
         public int GénérerBloque(int ennemiHP)
-        {
-            int BloqueHeal = 0;
-            Random random = new Random();
+{
+    int BloqueHeal = 0;
+    Random random = new Random();
 
-            switch(difficulty)
+    switch(difficulty)
+    {
+        case 1:
+            switch(choixMob)
             {
                 case 1:
-                    switch(choixMob)
-                    {
-                        case 1:
-                        case 2:
-                        case 3:
-                            BloqueHeal = random.Next(-3, -5);
-                            break;
-                        case 4: // Swarm de gobelins
-                            if(ennemiHP >= 20)
-                            { BloqueHeal = random.Next(-9, -13); }
-                            else if (ennemiHP > 20 && ennemiHP <= 9)
-                            { BloqueHeal = random.Next(-6, -9); }
-                            else
-                            { BloqueHeal = random.Next(-3, -5); }
-                            break;
-                        case 5: // Porte méchante
-                            BloqueHeal = random.Next(-4, -6);
-                            break;
-                    }
-                    break;
                 case 2:
-                    switch (choixMob)
-                    {
-                        case 1: // Orc
-                            BloqueHeal = random.Next(-4, -7);
-                            break;
-                        case 2: // Slime
-                            BloqueHeal = -6;
-                            break;
-                        case 3: // Mage Gobelin
-                            BloqueHeal = random.Next(-6, -9);
-                            break;
-                        case 4: // Géant
-                            BloqueHeal = random.Next(-3, -5);
-                            break;
-                        case 5: // Gargouille
-                            BloqueHeal = random.Next(-5, -7);
-                            break;
+                case 3:
+                    // IMPORTANT : Les nombres négatifs causent des crashs, faque j'ai inversé les nombres pour que le random.Next fonctionne
+                    BloqueHeal = random.Next(-5, -3); 
+                    break;
+                case 4: // Swarm de gobelins
+                    if(ennemiHP >= 20)
+                    { 
+                        BloqueHeal = random.Next(-13, -9); 
+                    }
+                    else if (ennemiHP > 9 && ennemiHP <= 20)
+                    { 
+                        BloqueHeal = random.Next(-9, -6); 
+                    }
+                    else
+                    { 
+                        BloqueHeal = random.Next(-5, -3); 
                     }
                     break;
-                case 3:
-                    switch (choixMob)
-                    {
-                        case 1: // Troll
-                            BloqueHeal = random.Next(-7, -9);
-                            break;
-                        case 2: // Champion squelette
-                            BloqueHeal = random.Next(-7, -9);
-                            break;
-                        case 3: // Sirène
-                            BloqueHeal = -10;
-                            break;
-                        case 4: // Démon démoniaque
-                            BloqueHeal = random.Next(-5, -7);
-                            break;
-                        case 5: // Dark Sorcerer
-                            BloqueHeal = random.Next(-6, -8);
-                            break;
-                    }
+                case 5: // Porte méchante
+                    BloqueHeal = random.Next(-6, -4);
                     break;
             }
-            return BloqueHeal;
-        }
+            break;
+        case 2:
+            switch (choixMob)
+            {
+                case 1: // Orc
+                    BloqueHeal = random.Next(-7, -4);
+                    break;
+                case 2: // Slime
+                    BloqueHeal = -6;
+                    break;
+                case 3: // Mage Gobelin
+                    BloqueHeal = random.Next(-9, -6);
+                    break;
+                case 4: // Géant
+                    BloqueHeal = random.Next(-5, -3);
+                    break;
+                case 5: // Gargouille
+                    BloqueHeal = random.Next(-7, -5);
+                    break;
+            }
+            break;
+        case 3:
+            switch (choixMob)
+            {
+                case 1: // Troll
+                    BloqueHeal = random.Next(-9, -7);
+                    break;
+                case 2: // Champion squelette
+                    BloqueHeal = random.Next(-9, -7);
+                    break;
+                case 3: // Sirène
+                    BloqueHeal = -10;
+                    break;
+                case 4: // Démon démoniaque
+                    BloqueHeal = random.Next(-7, -5);
+                    break;
+                case 5: // Dark Sorcerer
+                    BloqueHeal = random.Next(-8, -6);
+                    break;
+            }
+            break;
+    }
+    return BloqueHeal;
+}
 
         // Fonction pour l'IA des petits ennemis
         public int ChoixActionEnnemi(int PlayerHP, int MobHP) 
