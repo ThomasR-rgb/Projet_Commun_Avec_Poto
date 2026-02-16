@@ -48,9 +48,13 @@ namespace RPGPD_Le_Jeu
         // ÉTATS GLOBAUX PARTAGÉS
         public PlayerClass _currentClass;
         public int _playerLevel = 1;
-        public int _potions = 3;
+        public int _potions = 1;
         
-        // Variables liées à l'affichage (Avec la nouvelle logique de Thomas)
+        // Variables pour garder la vie et la mana entre les combats
+        public int _currentHP;
+        public int _currentMP;
+
+        // Variables liées à l'affichage
         public int _uiPlayerHP;     
         public int _uiPlayerMaxHP;
         public int _uiPlayerMana;
@@ -60,10 +64,14 @@ namespace RPGPD_Le_Jeu
         public string _enemyName = "Enemy";
 
         // Variable lue par le script de Tom
-        public volatile int _lastActionSelected = 0; // 1=Atk, 2=Block, 3=Spell, 4=Item
+        public volatile int _lastActionSelected = 0; 
+        public volatile int _selectedSpellId = 1; 
 
         // Visuels internes
         private Image? _whiteMageSprite;
+        private Image? _fighterSprite;
+        private Image? _darkMageSprite;
+        
         private GameState _currentState;
         private System.Windows.Forms.Timer _gameTimer = null!;
         private float _globalTime = 0;
@@ -93,15 +101,27 @@ namespace RPGPD_Le_Jeu
         private BufferedPanel pnlWinScreen = null!;
         private BufferedPanel pnlCreditsOverlay = null!;
         private GroupBox grpActions = null!;
+        private GroupBox grpSpellSelect = null!; 
+        
         private Button btnFighter = null!;
         private Button btnWhiteMage = null!;
         private Button btnDarkMage = null!;
         private Button btnPathLeft = null!;
         private Button btnPathRight = null!;
+        
+        // Action Buttons
         private Button btnAttack = null!;
         private Button btnBlock = null!;
         private Button btnSpell = null!;
         private Button btnItem = null!;
+        
+        // Spell Buttons
+        private Button btnSpell1 = null!;
+        private Button btnSpell2 = null!;
+        private Button btnSpell3 = null!;
+        private Button btnSpell4 = null!;
+        private Button btnSpellBack = null!;
+
         private Button btnWinReturn = null!;
         private Button btnCreditsClose = null!;
         private Label lblPlayerStats = null!;
@@ -110,7 +130,7 @@ namespace RPGPD_Le_Jeu
         private Label lblCreditsText = null!;
         private RichTextBox txtGameLog = null!;
 
-        // Logique de sélection de mob (pré-combat)
+        // Logique de sélection de mob
         private int _leftMobId;
         private int _rightMobId;
         private string _leftEnemyType = "";
@@ -122,14 +142,20 @@ namespace RPGPD_Le_Jeu
             try
             {
                 string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
-                string imagePath = Path.Combine(exeFolder, "white_mage.png");
-                _whiteMageSprite = Image.FromFile(imagePath);
+                _whiteMageSprite = LoadImg(Path.Combine(exeFolder, "white_mage.png"));
+                _fighterSprite = LoadImg(Path.Combine(exeFolder, "fighter.png"));
+                _darkMageSprite = LoadImg(Path.Combine(exeFolder, "dark_mage.png"));
             }
-            catch { _whiteMageSprite = null; }
+            catch { }
 
             InitializeComponents();
             InitializeAnimation();
             ShowMainMenu();
+        }
+
+        private Image? LoadImg(string path) {
+            if(File.Exists(path)) return Image.FromFile(path);
+            return null;
         }
 
         private void SetupWindow()
@@ -151,9 +177,6 @@ namespace RPGPD_Le_Jeu
             _gameTimer.Start();
         }
 
-        // ==========================================
-        // BOUCLE GRAPHIQUE
-        // ==========================================
         private void GameLoop(object? sender, EventArgs e)
         {
             _globalTime += 0.1f;
@@ -171,11 +194,6 @@ namespace RPGPD_Le_Jeu
             if (_currentState == GameState.MainMenu) AnimateMainMenuTitle();
         }
 
-        // ==========================================
-        // VARIABLES PUBLIQUES POUR LA NOUVELLE LOGIQUE
-        // ==========================================
-        
-        // Met à jour les barres de vie et le texte
         public void UpdateBattleUI(int hp, int maxHp, int mp, int maxMp, int mobHp, int mobMaxHp)
         {
             _uiPlayerHP = hp;
@@ -189,15 +207,79 @@ namespace RPGPD_Le_Jeu
             lblEnemyStats.Text = $"{_enemyName}\nHP: {_uiEnemyHP}/{_uiEnemyMaxHP}";
         }
 
-        private void InputBtnClick(int actionId)
+      private void InputBtnClick(int actionId)
       {
         if (!_inputEnabled || _currentState != GameState.Battle) return;
+
+        if (actionId == 3)
+        {
+             grpActions.Visible = false;
+             grpSpellSelect.Visible = true;
+             UpdateSpellButtons(); 
+             return;
+        }
 
         _lastActionSelected = actionId; 
     
         _inputEnabled = false; 
         ToggleActionButtons(false); 
       }
+
+      private void SpellBtnClick(int spellId)
+      {
+          _selectedSpellId = spellId;
+          grpSpellSelect.Visible = false;
+          grpActions.Visible = true;
+          
+          _lastActionSelected = 3;
+          _inputEnabled = false;
+          ToggleActionButtons(false);
+      }
+
+      private void BackToActions()
+      {
+          grpSpellSelect.Visible = false;
+          grpActions.Visible = true;
+      }
+
+      // Griser les spells inconnus
+      private void UpdateSpellButtons()
+      {
+            btnSpell1.Text = "-"; btnSpell2.Text = "-"; btnSpell3.Text = "-"; btnSpell4.Text = "-";
+            
+            if (_currentClass == PlayerClass.Fighter) {
+                btnSpell1.Text = "Magic Sword (1 MP)";
+                btnSpell2.Text = "Cure (1 MP)";
+            }
+            else if (_currentClass == PlayerClass.WhiteMage) {
+                btnSpell1.Text = "Fire Bolt (1 MP)";
+                btnSpell2.Text = "Heal (1 MP)";
+                btnSpell3.Text = "Divine Grace (2 MP)";
+                btnSpell4.Text = "Smite (3 MP)";
+            }
+            else if (_currentClass == PlayerClass.DarkMage) {
+                btnSpell1.Text = "Vampire Touch (1 MP)";
+                btnSpell2.Text = "Reflect (2 MP)";
+                btnSpell3.Text = "Ice Beam (2 MP)";
+                btnSpell4.Text = "Kill (7 MP)";
+            }
+
+            // Loop pour désactiver les boutons "-"
+            Button[] spells = { btnSpell1, btnSpell2, btnSpell3, btnSpell4 };
+            foreach(var btn in spells)
+            {
+                if(btn.Text == "-") {
+                    btn.Enabled = false;
+                    btn.BackColor = Color.FromArgb(60, 60, 60); // Gris foncé
+                    btn.ForeColor = Color.Gray;
+                } else {
+                    btn.Enabled = true;
+                    btn.BackColor = Color.Indigo;
+                    btn.ForeColor = Color.White;
+                }
+            }
+      }
+
         public void Log(string message)
         {
             txtGameLog.AppendText($"> {message}\n");
@@ -233,30 +315,32 @@ namespace RPGPD_Le_Jeu
             }
         }
 
-        // ==========================================
-        // Gestion des inputs
-        // ==========================================
-
         public void ToggleActionButtons(bool enabled)
         {
-         Color btnColor = enabled ? Color.White : Color.Gray;
-    
-        btnAttack.Enabled = enabled;
-        btnBlock.Enabled = enabled;
-        btnSpell.Enabled = enabled;
-        btnItem.Enabled = enabled;
+            Color btnColor = enabled ? Color.White : Color.Gray;
+            
+            btnAttack.Enabled = enabled;
+            btnBlock.Enabled = enabled;
+            btnSpell.Enabled = enabled;
+            btnItem.Enabled = enabled;
 
-        // Change la couleur adéquatement
-        btnAttack.ForeColor = btnColor;
-        btnBlock.ForeColor = btnColor;
-        btnSpell.ForeColor = btnColor;
-        btnItem.ForeColor = btnColor;
-}
+            btnAttack.ForeColor = btnColor;
+            btnBlock.ForeColor = btnColor;
+            btnSpell.ForeColor = btnColor;
+            btnItem.ForeColor = btnColor;
+        }
+
         private void StartGame(PlayerClass selectedClass)
         {
             _currentClass = selectedClass;
             _playerLevel = 1;
-            _potions = 3;
+            _potions = 1; 
+
+            // Initialiser les HP/MP ici pour le début du jeu
+            Player p = new Player((int)selectedClass + 1);
+            _currentHP = p.MaxHPPlayerScale(1, (int)selectedClass + 1);
+            _currentMP = p.BaseMPPlayer(1, (int)selectedClass + 1);
+
             Log("You chose " + _currentClass.ToString() + "!");
             ShowEncounterSelection();
         }
@@ -265,8 +349,6 @@ namespace RPGPD_Le_Jeu
         {
             int mobId = isLeft ? _leftMobId : _rightMobId;
             _enemyName = isLeft ? _leftEnemyType : _rightEnemyType;
-
-            // Lancement du combat (Lien vers Program.cs)
             StartBattleLogic(mobId);
         }
 
@@ -275,26 +357,28 @@ namespace RPGPD_Le_Jeu
             _currentState = GameState.Battle;
             ShowBattleUI();
             
-            // J'invoque la logique de Thomas dans Program.cs
-            // Je map l'enum PlayerClass vers int (0, 1, 2) + 1 pour matcher les switchs (1, 2, 3)
             int classId = (int)_currentClass + 1; 
             
             await BattleParThomas(_playerLevel, classId, mobId, _potions);
 
-            // Si on sort de la boucle, c'est victoire (car défaite = extinction de la race humaine)
             _battlesWon++;
+            
+            // Regen seulement au Level Up
             if(_battlesWon % 3 == 0) {
                  _playerLevel++;
-                 Log("LEVEL UP!");
+                 _potions = 1; 
+                 
+                 // On restore la vie et la mana au max
+                 Player p = new Player(classId);
+                 _currentHP = p.MaxHPPlayerScale(_playerLevel > 3 ? 3 : _playerLevel, classId);
+                 _currentMP = p.BaseMPPlayer(_playerLevel > 3 ? 3 : _playerLevel, classId);
+
+                 Log("LEVEL UP! Health, Mana & Potion restored.");
             }
             
             await Task.Delay(2000);
             ShowEncounterSelection();
         }
-
-        // ==========================================
-        // RENDU & VISUELS (Le reste du code visuel)
-        // ==========================================
 
         private void BattleScene_Paint(object? sender, PaintEventArgs e)
         {
@@ -337,11 +421,16 @@ namespace RPGPD_Le_Jeu
             float x = 200 + _playerAnimOffset;
             float y = h / 2;
 
-            if (_currentClass == PlayerClass.WhiteMage && _whiteMageSprite != null)
+            Image? spriteToUse = null;
+            if (_currentClass == PlayerClass.WhiteMage) spriteToUse = _whiteMageSprite;
+            else if (_currentClass == PlayerClass.Fighter) spriteToUse = _fighterSprite;
+            else if (_currentClass == PlayerClass.DarkMage) spriteToUse = _darkMageSprite;
+
+            if (spriteToUse != null)
             {
                 var oldMode = g.InterpolationMode;
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
-                g.DrawImage(_whiteMageSprite, x, y - 50, 100, 100);
+                g.DrawImage(spriteToUse, x, y - 50, 100, 100);
                 g.InterpolationMode = oldMode;
                 return;
             }
@@ -357,7 +446,8 @@ namespace RPGPD_Le_Jeu
             float x = w - 300 + _enemyAnimOffset;
             float y = h / 2 - 50 + breathe;
 
-            Brush mobColor = name.Contains("Goblin") ? Brushes.ForestGreen : 
+            Brush mobColor = name.Contains("Gobelin") ? Brushes.ForestGreen : 
+                             name.Contains("Squelette") ? Brushes.LightGray :
                              name.Contains("Boss") ? Brushes.DarkRed : Brushes.Gray;
             
             g.FillEllipse(mobColor, x, y, 100, 100);
@@ -442,7 +532,7 @@ namespace RPGPD_Le_Jeu
         }
         private void ShowBattleUI() { lblTitle.Visible = false; grpClassSelect.Visible = false; pnlEncounterSelect.Visible = false; pnlWinScreen.Visible = false; pnlBattleScene.Visible = true; pnlBottomUI.Visible = true; }
         private void HideBattleUI() { pnlBattleScene.Visible = false; pnlBottomUI.Visible = false; }
-        private void WinScreen_Paint(object? sender, PaintEventArgs e) { /* J'ai simplifié un peu cette partie */ }
+        private void WinScreen_Paint(object? sender, PaintEventArgs e) { /* ... */ }
 
         private void InitializeComponents() {
             
@@ -455,18 +545,21 @@ namespace RPGPD_Le_Jeu
 
             pnlCreditsOverlay = new BufferedPanel() { Size = new Size(600, 400), Location = new Point(cx - 300, cy - 200), BackColor = Color.FromArgb(240, 20, 20, 20), Visible = false }; 
             this.Controls.Add(pnlCreditsOverlay);
+            
+            // PATCH: Credits ajustés
             lblCreditsText = new Label() {
             Text = "Created by Thomas & Félix\n\nArt: Alana\nCode: C#\n\nThanks for playing!",
-            Font = new Font("Arial", 14, FontStyle.Regular),
+            Font = new Font("Arial", 16, FontStyle.Bold),
             ForeColor = Color.White,
             AutoSize = false,
-            TextAlign = ContentAlignment.TopCenter,
-            Dock = DockStyle.Top,
-            Height = 300,
+            TextAlign = ContentAlignment.MiddleCenter,
+            Dock = DockStyle.Fill,
             BackColor = Color.Transparent
            };
             pnlCreditsOverlay.Controls.Add(lblCreditsText);
-            btnCreditsClose = CreateMenuButton("CLOSE", 150, 320, (s, e) => pnlCreditsOverlay.Visible = false); 
+            
+            // PATCH: Bouton Close remonté
+            btnCreditsClose = CreateMenuButton("CLOSE", 150, 310, (s, e) => pnlCreditsOverlay.Visible = false); 
             pnlCreditsOverlay.Controls.Add(btnCreditsClose);
 
 
@@ -482,6 +575,8 @@ namespace RPGPD_Le_Jeu
 
             pnlBottomUI = new Panel() { Dock = DockStyle.Bottom, Height = 250, BackColor = Color.Transparent }; this.Controls.Add(pnlBottomUI);
             txtGameLog = new RichTextBox() { Location = new Point(20, 20), Size = new Size(w / 2 - 40, 210), ReadOnly = true, BackColor = Color.FromArgb(10, 10, 10), ForeColor = Color.LightGray, Font = new Font("Consolas", 12), BorderStyle = BorderStyle.None }; pnlBottomUI.Controls.Add(txtGameLog);
+            
+            // ACTION GROUP
             grpActions = new GroupBox() { Location = new Point(w / 2, 10), Size = new Size(w / 2 - 20, 230), BackColor = Color.Transparent }; pnlBottomUI.Controls.Add(grpActions);
             
             int bx = 20, by = 20, bw = (grpActions.Width / 2) - 40, bh = 80;
@@ -490,6 +585,19 @@ namespace RPGPD_Le_Jeu
             btnSpell = CreateActionButton("SPELL", bx, by + bh + 20, bw, bh, Color.Purple); btnSpell.Click += (s, e) => InputBtnClick(3);
             btnItem = CreateActionButton("ITEM", bx + bw + 20, by + bh + 20, bw, bh, Color.DarkGreen); btnItem.Click += (s, e) => InputBtnClick(4);
             grpActions.Controls.AddRange(new Control[] { btnAttack, btnBlock, btnSpell, btnItem });
+
+            // PATCH: Mini menu de spells
+            grpSpellSelect = new GroupBox() { Location = new Point(w / 2, 10), Size = new Size(w / 2 - 20, 230), BackColor = Color.Transparent, Visible = false }; pnlBottomUI.Controls.Add(grpSpellSelect);
+            btnSpell1 = CreateActionButton("-", bx, by, bw, bh, Color.Indigo); btnSpell1.Click += (s, e) => SpellBtnClick(1);
+            btnSpell2 = CreateActionButton("-", bx + bw + 20, by, bw, bh, Color.Indigo); btnSpell2.Click += (s, e) => SpellBtnClick(2);
+            btnSpell3 = CreateActionButton("-", bx, by + bh + 20, bw, bh, Color.Indigo); btnSpell3.Click += (s, e) => SpellBtnClick(3);
+            btnSpell4 = CreateActionButton("-", bx + bw + 20, by + bh + 20, bw, bh, Color.Indigo); btnSpell4.Click += (s, e) => SpellBtnClick(4);
+            
+            btnSpellBack = CreateMenuButton("BACK", 0, 0, (s, e) => BackToActions());
+            btnSpellBack.Size = new Size(100, 30); btnSpellBack.Location = new Point(grpSpellSelect.Width - 110, 0); btnSpellBack.Font = new Font("Arial", 10);
+            
+            grpSpellSelect.Controls.AddRange(new Control[] { btnSpell1, btnSpell2, btnSpell3, btnSpell4, btnSpellBack });
+
 
             pnlBattleScene = new BufferedPanel() { Dock = DockStyle.Fill, BackColor = Color.Black, Visible = false }; pnlBattleScene.Paint += BattleScene_Paint; this.Controls.Add(pnlBattleScene);
             lblEnemyStats = new Label { AutoSize = true, Location = new Point(w - 300, 50), Font = new Font("Consolas", 18, FontStyle.Bold), ForeColor = Color.Red, BackColor = Color.Transparent }; pnlBattleScene.Controls.Add(lblEnemyStats);
@@ -505,6 +613,30 @@ namespace RPGPD_Le_Jeu
         private Button CreateActionButton(string text, int x, int y, int w, int h, Color c) { return new Button() { Text = text, Location = new Point(x, y), Size = new Size(w, h), Font = new Font("Arial", 16, FontStyle.Bold), BackColor = c, ForeColor = Color.White, FlatStyle = FlatStyle.Flat }; }
         private Button CreatePathButton(int x, int y, int w, int h) { return new Button() { Location = new Point(x, y), Size = new Size(w, h), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(20, 20, 20), ForeColor = Color.White, Font = new Font("Courier New", 24, FontStyle.Bold) }; }
         private void HandleGlobalInput(object? sender, KeyEventArgs e) { if (e.KeyCode == Keys.Escape) { ShowMainMenu(); } }
-        private string GetMobName(int d, int c) { if (c == 1) return "Gobelin"; if (c == 2) return "Squelette"; return "Monster"; } // Simplifié  (encore)
+        
+        private string GetMobName(int d, int c) { 
+            if(d == 1) {
+                if (c == 1) return "Gobelin"; 
+                if (c == 2) return "Squelette";
+                if (c == 3) return "Gros Rat";
+                if (c == 4) return "Gobelin Swarm";
+                if (c == 5) return "Porte Méchante";
+            }
+            if(d == 2) {
+                if (c == 1) return "Orc";
+                if (c == 2) return "Slime";
+                if (c == 3) return "Mage Gobelin";
+                if (c == 4) return "Géant";
+                if (c == 5) return "Gargouille";
+            }
+            if(d == 3) {
+                if (c == 1) return "Troll";
+                if (c == 2) return "Champion Squelette";
+                if (c == 3) return "Sirène";
+                if (c == 4) return "Démon";
+                if (c == 5) return "Dark Sorcerer";
+            }
+            return "Monster"; 
+        } 
     }
 }

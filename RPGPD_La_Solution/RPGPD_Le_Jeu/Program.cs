@@ -30,14 +30,15 @@ namespace RPGPD_Le_Jeu
 
         private async Task BattleParThomas(int difficulty, int playerClass, int choixDeLennemi, int nbPlayerPotion) // 1 potion qui full life
         {
-            Mobs mob = new Mobs(difficulty, choixDeLennemi, playerClass); // Mes variables
+            Mobs mob = new Mobs(difficulty, choixDeLennemi, playerClass); 
             Player player = new Player(playerClass);
+            
             int EnnemiHP = mob.Générer_HP();
             int EnnemiMaxHP = EnnemiHP;
-            int playerHP = player.MaxHPPlayerScale(difficulty, playerClass);
-            int playerMaxHP = playerHP;
-            int playerMP = player.BaseMPPlayer(difficulty, playerClass); 
-            int playerMaxMP = playerMP; 
+            int playerHP = _currentHP; 
+            int playerMaxHP = player.MaxHPPlayerScale(difficulty, playerClass);
+            int playerMP = _currentMP; 
+            int playerMaxMP = player.BaseMPPlayer(difficulty, playerClass); 
 
             // Première update de l'UI sinon ça marche pas dans les visuels
             UpdateBattleUI(playerHP, playerMaxHP, playerMP, playerMaxMP, EnnemiHP, EnnemiMaxHP);
@@ -105,8 +106,9 @@ namespace RPGPD_Le_Jeu
                             Log($"You attack for {intDivinDuJoueur} damage."); // Synchro de l'UI
                             TriggerEffect("HIT"); // Synchro de l'UI
 
+                            // Empêche le fait que les mobs peuvent tomber en dessous de 0 PV avant de mourir
                             if (EnnemiHP <= 0)
-                            { break; }
+                            { EnnemiHP = 0; break; }
                             
                             // Attaque de l'ennemi après
                             TriggerAttackAnim(false); // Synchro de l'UI
@@ -139,12 +141,14 @@ namespace RPGPD_Le_Jeu
                                 {
                                     intDivinDuJoueur = 0;
                                     EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs; // C'est quoi ça Thomas, moi être perdu
+                                    // Empêche le overheal
+                                    if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
                                 }
                                 else
                                 {
                                     // J'ai enlevé "EnnemiHP = EnnemiHP - intDivinDuJoueur;" parce que j'ai changé le sync
                                     if (EnnemiHP <= 0)
-                                    { break; }
+                                    { EnnemiHP = 0; break; }
                                     else
                                     { 
                                         TriggerAttackAnim(false); await Task.Delay(500); // Synchro de l'UI
@@ -167,13 +171,20 @@ namespace RPGPD_Le_Jeu
                             intDivinDuMobs = GérerMesFuckassExceptionsM(ReflectActive, intDivinDuMobs);
                             intDivinDuMobs = intDivinDuMobs / 2;
                             playerHP = playerHP + intDivinDuJoueur - intDivinDuMobs;
+                            // Empêche le overheal
+                            if(playerHP > playerMaxHP) playerHP = playerMaxHP;
+
                             if (playerHP <= 0)
                             { Environment.Exit(0); }
                         }
                         else if (EnnemiAction == 2)
                         {
                             playerHP = playerHP + intDivinDuJoueur;
+                            // Empêche le overheal (Encore une autre fois)
+                            if(playerHP > playerMaxHP) playerHP = playerMaxHP;
+
                             EnnemiHP = EnnemiHP - intDivinDuMobs;
+                            if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
                         }
                         else if(EnnemiAction == 3)
                         {
@@ -193,6 +204,7 @@ namespace RPGPD_Le_Jeu
                                 {
                                     intDivinDuJoueur = 0;
                                     EnnemiHP = EnnemiHP - intDivinDuMobs;
+                                    if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
                                 }
                                 else
                                 {
@@ -205,11 +217,27 @@ namespace RPGPD_Le_Jeu
                     case 3: // Spell
                         TriggerAttackAnim(true); // Synchro de l'UI
                         await Task.Delay(500);
+                        
+                        // Utiliser le spell sélectionné dans le menu
+                        playerSpellAction = _selectedSpellId;
 
-                        playerMP = player.spellJoueur(playerClass, playerSpellAction);
-                        AcourtDeMP = player.EstCeQueCCook(playerMP);
-                        if (AcourtDeMP == true) { intDivinDuJoueur = 0; Log("Spell Failed!"); }
-                        intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
+                        // PPatcher les spells pour qu'ils consomment et non qu'ils fassent gagner du mana.
+                        // On calcule le futur mana
+                        int nextMP = player.ManaCostJoueur(playerClass, playerSpellAction, playerMP);
+                        
+                        // Si le mana tombait sous zero, EstCeQueCCook retourne true (c'est cook pour vrai)
+                        AcourtDeMP = player.EstCeQueCCook(nextMP);
+
+                        if (AcourtDeMP == true) { 
+                            intDivinDuJoueur = 0; 
+                            Log("Not enough Mana! Skip a turn, bitch!"); 
+                        }
+                        else {
+                            // On applique le coût
+                            playerMP = nextMP;
+                            intDivinDuJoueur = player.spellJoueur(playerClass, playerSpellAction);
+                        }
+
                         EnnemiAction = mob.ChoixActionEnnemi(playerHP, EnnemiHP);
                         intDivinDuMobs = mob.ResultatTourMobsDeBase(EnnemiAction, EnnemiHP);
                         if (intDivinDuMobs == 106) // Stun
@@ -218,13 +246,19 @@ namespace RPGPD_Le_Jeu
                         if (intDivinDuJoueur != 101 && intDivinDuJoueur != 102 && intDivinDuJoueur != 103 && intDivinDuJoueur != 104 && intDivinDuJoueur != 105)
                         {
                             if(intDivinDuJoueur < 0)
-                            { playerHP = playerHP - intDivinDuJoueur; TriggerEffect("HEAL", -intDivinDuJoueur); }
+                            { 
+                                playerHP = playerHP - intDivinDuJoueur; 
+                                // Empêche le overheal (encore encore)
+                                if(playerHP > playerMaxHP) playerHP = playerMaxHP;
+
+                                TriggerEffect("HEAL", -intDivinDuJoueur); 
+                            }
                             else
                             {
                                 EnnemiHP = EnnemiHP - intDivinDuJoueur;
                                 TriggerEffect("HIT");
                                 if (EnnemiHP <= 0)
-                                { break; }
+                                { EnnemiHP = 0; break; }
                             }
                         }
                         switch(intDivinDuJoueur)
@@ -240,7 +274,9 @@ namespace RPGPD_Le_Jeu
                             case 103: // Vampire touch
                                 intDivinDuJoueur = rand.Next(2, 6);
                                 EnnemiHP = EnnemiHP - intDivinDuJoueur;
+                                if(EnnemiHP < 0) EnnemiHP = 0;
                                 playerHP = playerHP + intDivinDuJoueur;
+                                if(playerHP > playerMaxHP) playerHP = playerMaxHP;
                                 Log("Vampire Touch!");
                                 break;
                             case 104: // reflect
@@ -258,6 +294,8 @@ namespace RPGPD_Le_Jeu
                             intDivinDuJoueur = 0;
                             // Animation de bloque du joueur et de l'attaque du joueur
                             EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                            if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
+
                             if (DivineGraceActive) { intDivinDuJoueur = player.MaxHPPlayerScale(difficulty, playerClass); }
                         }
                         else if (EnnemiAction == 1)
@@ -286,11 +324,12 @@ namespace RPGPD_Le_Jeu
                                 {
                                     intDivinDuJoueur = 0;
                                     EnnemiHP = EnnemiHP - intDivinDuJoueur - intDivinDuMobs;
+                                    if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
                                 }
                                 else
                                 {
                                     if (EnnemiHP <= 0)
-                                    { break; }
+                                    { EnnemiHP = 0; break; }
                                     else
                                     { playerHP = playerHP - intDivinDuMobs; }
                                 }
@@ -309,32 +348,44 @@ namespace RPGPD_Le_Jeu
                                 playerHP = playerHP - intDivinDuMobs;
                                 if (playerHP <= 0)
                                 { Environment.Exit(0); }
-                                if (playerPotion == 1)
+                                if (playerPotion == 1) // 1 potion max cette fois-ci
                                 {
                                     playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
                                     TriggerEffect("HEAL", 100);
+                                    Log("Potion used! Full Health.");
+                                    playerPotion = 0;
+                                    _potions = 0; // Sync de la variable visuelle
                                 }
-                                playerPotion = 0;
+                                else {
+                                     Log("No potions left!");
+                                }
                                 break;
                             case 2:
                                 if (playerPotion == 1)
                                 {
                                     playerHP = player.MaxHPPlayerScale(difficulty, playerClass); // un full life
                                     TriggerEffect("HEAL", 100);
+                                    playerPotion = 0;
+                                    _potions = 0; // Sync de la variable visuelle
                                 }
-                                playerPotion = 0;
                                 EnnemiHP = EnnemiHP + intDivinDuMobs;
+                                if(EnnemiHP > EnnemiMaxHP) EnnemiHP = EnnemiMaxHP;
                                 break;
                         }
                         break;
                 }
                 
                 // Update de l'UI, mais cette fois-ci pour ceux qui ont la BARRE
-                UpdateBattleUI(playerHP, playerMaxHP, playerMP, playerMaxMP, EnnemiHP, EnnemiMaxHP);
+
+                UpdateBattleUI(playerHP, playerMaxHP, playerMP, playerMaxMP, Math.Max(0, EnnemiHP), EnnemiMaxHP);
 
             } while (EnnemiHP > 0);
 
             TriggerEffect("VICTORY");
+
+            _currentHP = playerHP;
+            _currentMP = playerMP;
+
         }  // Fin du tung tung tung sahur (Okay Thomas, my bad)
 
         public int GérerMesFuckassExceptionsJ(bool magicSwordActive, bool roughskinActive, int intdivindujoueur)
